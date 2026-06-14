@@ -1,0 +1,12 @@
+.venv
+.vscode
+__pycache__/
+*.pyc
+.pytest_cache/
+build/
+dist/
+*.spec
+.env
+logs/
+temp/
+*.xlsm
