@@ -1,5 +1,6 @@
 from PyQt6.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QPlainTextEdit)
+    QMainWindow, QWidget, QVBoxLayout, 
+    QPlainTextEdit, QPushButton)
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -12,6 +13,8 @@ class MainWindow(QMainWindow):
         self.resize(800, 600)
         # SQL入力用エディタ
         self.sql_editor = QPlainTextEdit()
+        # SQL実行ボタン
+        self.exec_button = QPushButton("クエリ実行！")
 
         # UIパーツの配置
         # 中央に親ウィジェットを配置
@@ -23,4 +26,6 @@ class MainWindow(QMainWindow):
 
         # テキストエリアを追加
         layout.addWidget(self.sql_editor)
-
+        # 「クエリ実行！」ボタンを追加
+        layout.addWidget(self.exec_button)
+        
