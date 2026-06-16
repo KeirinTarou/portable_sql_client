@@ -1,5 +1,6 @@
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, 
+    QHBoxLayout, 
     QPlainTextEdit, QPushButton, QTableWidget)
 
 class MainWindow(QMainWindow):
@@ -13,8 +14,10 @@ class MainWindow(QMainWindow):
         self.resize(800, 600)
         # SQL入力用エディタ
         self.sql_editor = QPlainTextEdit()
-        # SQL実行ボタン
+        # SQL実行ボタン（サイズ固定）
         self.exec_button = QPushButton("クエリ実行！")
+        self.exec_button.setFixedHeight(40)
+        self.exec_button.setFixedWidth(80)
         # 結果表示テーブル
         self.result_table = QTableWidget()
 
@@ -25,10 +28,15 @@ class MainWindow(QMainWindow):
         # ボックスレイアウトの作成
         layout = QVBoxLayout()
         central_widget.setLayout(layout)
+        # ボタンのレイアウト
+        button_layout = QHBoxLayout()
+        # 〝伸びる空白（stretch）〟を追加（add）して右寄せにする
+        button_layout.addStretch()
+        button_layout.addWidget(self.exec_button)
 
         # テキストエリアを追加
-        layout.addWidget(self.sql_editor)
+        layout.addWidget(self.sql_editor, 3)
         # 「クエリ実行！」ボタンを追加
-        layout.addWidget(self.exec_button)
+        layout.addLayout(button_layout)
         # 結果表示テーブルを追加
-        layout.addWidget(self.result_table)
+        layout.addWidget(self.result_table, 2)
