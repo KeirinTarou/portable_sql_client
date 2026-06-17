@@ -40,3 +40,14 @@ class MainWindow(QMainWindow):
         layout.addLayout(button_layout)
         # 結果表示テーブルを追加
         layout.addWidget(self.result_table, 2)
+
+        # コマンドのバインド
+        #   - 関数オブジェクトとして渡す
+        self.exec_button.clicked.connect(
+            self._on_exec_button_clicked
+        )
+
+    # Private method
+    def _on_exec_button_clicked(self):
+        print("クエリ実行！")
+    
