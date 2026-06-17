@@ -4,7 +4,9 @@ from PyQt6.QtWidgets import (
     QPlainTextEdit, QPushButton, 
     QTableWidget, QTableWidgetItem)
 
+from app.core.paths import get_base_dir
 from app.models.query_result import QueryResult
+from app.infrastructure.excel_runner import ExcelRunner
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -53,8 +55,18 @@ class MainWindow(QMainWindow):
     # Private method
     #  クリックイベントを受け取る
     def _on_exec_button_clicked(self):
+        # エディタからクエリ取り出し
         query = self.sql_editor.toPlainText()
-        print(query)
+        # 踏み台Excelにクエリを投げる
+        runner = ExcelRunner()
+        # クエリ実行
+        runner.execute(
+            output_path=get_base_dir() / "temp" / "result.json", 
+            query=query, 
+            params=[], 
+            timeout=30
+        )
+        print("クエリを実行した！")
 
     # 結果セットを表示する
     def _show_query_result(
