@@ -8,9 +8,16 @@ from app.core.paths import get_base_dir
 from app.models.query_result import QueryResult
 from app.infrastructure.excel_runner import ExcelRunner
 from app.infrastructure.json_loader import JSONLoader
+from app.core.text_utils import truncate
 
 class MainWindow(QMainWindow):
     def __init__(self):
+        """ 
+        MainWindowクラスのコンストラクタ
+
+        .. note::
+        - app/ui/main_window.py
+        """
         super().__init__()
 
         # メイン・ウィンドウの設定
@@ -56,6 +63,7 @@ class MainWindow(QMainWindow):
     # Private method
     #  クリックイベントを受け取る
     def _on_exec_button_clicked(self):
+        """ 「クエリ実行！」ボタンのクリックイベントの処理"""
         # エディタからクエリ取り出し
         query = self.sql_editor.toPlainText()
         # 踏み台Excelにクエリを投げる
@@ -67,18 +75,25 @@ class MainWindow(QMainWindow):
             params=[], 
             timeout=30
         )
+
         # JSON読み込み
         loader = JSONLoader()
         result = loader.load(
             get_base_dir() / "temp" / "result.json"
         )
+        
+        if result.columns[0] == "error":
+            error_message = result.rows[0][0]
+            self._show_error(error_message)
+            return
+
         # 結果セット表示
         self._show_query_result(result)
 
-    # 結果セットを表示する
     def _show_query_result(
             self, 
             result: QueryResult):
+        """ 結果セットをテーブルに表示する"""
         self.result_table.setColumnCount(
             result.column_count
         )
@@ -98,3 +113,14 @@ class MainWindow(QMainWindow):
                     col_index, 
                     QTableWidgetItem(str(value))    
                 )
+
+    def _show_error(self, message: str):
+        """ エラーメッセージを出力"""
+        result = QueryResult(
+            columns=["( ´,_ゝ`)", "ち～ん（笑）"], 
+            rows=[
+                ["残念ｗ", "レコードセットが返らなかったｗｗｗ"], 
+                ["原因はたぶん……", truncate(message)]
+            ]
+        )
+        self._show_query_result(result)
