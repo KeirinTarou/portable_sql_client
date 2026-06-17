@@ -1,7 +1,8 @@
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, 
     QHBoxLayout, 
-    QPlainTextEdit, QPushButton, QTableWidget)
+    QPlainTextEdit, QPushButton, 
+    QTableWidget, QTableWidgetItem)
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -48,6 +49,7 @@ class MainWindow(QMainWindow):
         )
 
     # Private method
+    #  クリックイベントを受け取る
     def _on_exec_button_clicked(self):
-        print("クエリ実行！")
-    
+        self.result_table.setColumnCount(2)
+        self.result_table.setRowCount(3)
