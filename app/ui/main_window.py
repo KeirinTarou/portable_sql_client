@@ -81,10 +81,9 @@ class MainWindow(QMainWindow):
         result = loader.load(
             get_base_dir() / "temp" / "result.json"
         )
-        
-        if result.columns[0] == "error":
-            error_message = result.rows[0][0]
-            self._show_error(error_message)
+
+        if result.is_error:
+            self._show_error(result.error_message)
             return
 
         # 結果セット表示
