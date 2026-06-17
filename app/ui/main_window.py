@@ -7,6 +7,7 @@ from PyQt6.QtWidgets import (
 from app.core.paths import get_base_dir
 from app.models.query_result import QueryResult
 from app.infrastructure.excel_runner import ExcelRunner
+from app.infrastructure.json_loader import JSONLoader
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -66,7 +67,13 @@ class MainWindow(QMainWindow):
             params=[], 
             timeout=30
         )
-        print("クエリを実行した！")
+        # JSON読み込み
+        loader = JSONLoader()
+        result = loader.load(
+            get_base_dir() / "temp" / "result.json"
+        )
+        # 結果セット表示
+        self._show_query_result(result)
 
     # 結果セットを表示する
     def _show_query_result(
