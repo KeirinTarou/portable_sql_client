@@ -53,18 +53,8 @@ class MainWindow(QMainWindow):
     # Private method
     #  クリックイベントを受け取る
     def _on_exec_button_clicked(self):
-        result = QueryResult(
-            columns=[
-                "PrefecturalID", 
-                "PrefecturalName"
-            ], 
-            rows=[
-                [28, "兵庫県"], 
-                [29, "奈良県"], 
-                [30, "和歌山県"] 
-            ]
-        )
-        self._show_query_result(result)
+        query = self.sql_editor.toPlainText()
+        print(query)
 
     # 結果セットを表示する
     def _show_query_result(
