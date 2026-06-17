@@ -8,9 +8,16 @@ from app.core.paths import get_base_dir
 from app.models.query_result import QueryResult
 from app.infrastructure.excel_runner import ExcelRunner
 from app.infrastructure.json_loader import JSONLoader
+from app.core.text_utils import truncate
 
 class MainWindow(QMainWindow):
     def __init__(self):
+        """ 
+        MainWindowクラスのコンストラクタ
+
+        .. note::
+        - app/ui/main_window.py
+        """
         super().__init__()
 
         # メイン・ウィンドウの設定
@@ -56,29 +63,49 @@ class MainWindow(QMainWindow):
     # Private method
     #  クリックイベントを受け取る
     def _on_exec_button_clicked(self):
-        # エディタからクエリ取り出し
-        query = self.sql_editor.toPlainText()
-        # 踏み台Excelにクエリを投げる
-        runner = ExcelRunner()
-        # クエリ実行
-        runner.execute(
-            output_path=get_base_dir() / "temp" / "result.json", 
-            query=query, 
-            params=[], 
-            timeout=30
-        )
-        # JSON読み込み
-        loader = JSONLoader()
-        result = loader.load(
-            get_base_dir() / "temp" / "result.json"
-        )
-        # 結果セット表示
-        self._show_query_result(result)
+        """ 「クエリ実行！」ボタンのクリックイベントの処理"""
+        # 想定外の例外をキャッチ
+        try:
+            # エディタからクエリ取り出し
+            query = self.sql_editor.toPlainText()
+            # 踏み台Excelにクエリを投げる
+            runner = ExcelRunner()
+            # クエリ実行
+            runner.execute(
+                output_path=get_base_dir() / "temp" / "result.json", 
+                query=query, 
+                params=[], 
+                timeout=30
+            )
+        except Exception as e:
+            self._show_error(f"on ExcelRunner.execute(): {str(e)}")
+            return
 
-    # 結果セットを表示する
+        try:
+            # JSON読み込み
+            loader = JSONLoader()
+            result = loader.load(
+                get_base_dir() / "temp" / "result.json"
+            )
+        except Exception as e:
+            self._show_error(f"on JSONLoader.load(): {str(e)}")
+            return
+
+        if result.is_error:
+            self._show_error(result.error_message)
+            return
+
+        try:
+            # 結果セット表示
+            self._show_query_result(result)
+        except Exception as e:
+            self._show_error(f"on MainWindwo._show_query_result(): {str(e)}")
+            return
+
     def _show_query_result(
             self, 
             result: QueryResult):
+        """ 結果セットをテーブルに表示する"""
         self.result_table.setColumnCount(
             result.column_count
         )
@@ -98,3 +125,14 @@ class MainWindow(QMainWindow):
                     col_index, 
                     QTableWidgetItem(str(value))    
                 )
+
+    def _show_error(self, message: str):
+        """ エラーメッセージを出力"""
+        result = QueryResult(
+            columns=["( ´,_ゝ`)", "ち～ん（笑）"], 
+            rows=[
+                ["残念ｗ", "レコードセットが返らなかったｗｗｗ"], 
+                ["原因はたぶん……", truncate(message)]
+            ]
+        )
+        self._show_query_result(result)

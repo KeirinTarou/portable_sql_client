@@ -20,6 +20,8 @@ class QueryResult:
 class QueryResult:
     columns: list[str]
     rows: list[list[Any]]
+    is_error: bool = False
+    error_message: str = ""
 
     @property
     def row_count(self) -> int:
