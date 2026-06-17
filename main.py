@@ -1,5 +1,10 @@
+import sys
 from pathlib import Path
 
+from PyQt6.QtWidgets import QApplication
+from PyQt6.QtGui import QIcon
+
+from app.ui.main_window import MainWindow
 from app.core.paths import get_base_dir
 from app.infrastructure.excel_runner import ExcelRunner
 from app.infrastructure.json_loader import JSONLoader
@@ -16,20 +21,16 @@ WHERE
 """
 
 def main():
-    runner = ExcelRunner()
-
-    test_json_path = get_base_dir() / "temp" / "test.json"
-    runner.execute(
-        output_path=test_json_path, 
-        query=TEST_QUERY, 
-        params=[28, 29, 30], 
-        timeout=30
+    app = QApplication(sys.argv)
+    # アイコンのバインド
+    app.setWindowIcon(
+        QIcon(str(get_base_dir() / "assets" / "ba-90.ico"))
     )
-    loader = JSONLoader()
-    result = loader.load(test_json_path)
 
-    print(result.columns)
-    print(result.rows)
+    window = MainWindow()
+    window.show()
+
+    sys.exit(app.exec())
 
 if __name__ == "__main__":
     main()
