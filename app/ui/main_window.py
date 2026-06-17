@@ -4,6 +4,8 @@ from PyQt6.QtWidgets import (
     QPlainTextEdit, QPushButton, 
     QTableWidget, QTableWidgetItem)
 
+from app.models.query_result import QueryResult
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -51,5 +53,39 @@ class MainWindow(QMainWindow):
     # Private method
     #  クリックイベントを受け取る
     def _on_exec_button_clicked(self):
-        self.result_table.setColumnCount(2)
-        self.result_table.setRowCount(3)
+        result = QueryResult(
+            columns=[
+                "PrefecturalID", 
+                "PrefecturalName"
+            ], 
+            rows=[
+                [28, "兵庫県"], 
+                [29, "奈良県"], 
+                [30, "和歌山県"] 
+            ]
+        )
+        self._show_query_result(result)
+
+    # 結果セットを表示する
+    def _show_query_result(
+            self, 
+            result: QueryResult):
+        self.result_table.setColumnCount(
+            result.column_count
+        )
+        self.result_table.setRowCount(
+            result.row_count
+        )
+        # ヘッダを表示
+        self.result_table.setHorizontalHeaderLabels(
+            result.columns
+        )
+        # レコードを表示
+        for row_index, row in enumerate(result.rows):
+            for col_index, value in enumerate(row):
+                # セルにはQTableWidgetItemインスタンスを闘魂注入
+                self.result_table.setItem(
+                    row_index, 
+                    col_index, 
+                    QTableWidgetItem(str(value))    
+                )
