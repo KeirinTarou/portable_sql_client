@@ -4,7 +4,10 @@ from PyQt6.QtWidgets import (
     QPlainTextEdit, QPushButton, 
     QTableWidget, QTableWidgetItem)
 
+from app.core.paths import get_base_dir
 from app.models.query_result import QueryResult
+from app.infrastructure.excel_runner import ExcelRunner
+from app.infrastructure.json_loader import JSONLoader
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -53,17 +56,23 @@ class MainWindow(QMainWindow):
     # Private method
     #  クリックイベントを受け取る
     def _on_exec_button_clicked(self):
-        result = QueryResult(
-            columns=[
-                "PrefecturalID", 
-                "PrefecturalName"
-            ], 
-            rows=[
-                [28, "兵庫県"], 
-                [29, "奈良県"], 
-                [30, "和歌山県"] 
-            ]
+        # エディタからクエリ取り出し
+        query = self.sql_editor.toPlainText()
+        # 踏み台Excelにクエリを投げる
+        runner = ExcelRunner()
+        # クエリ実行
+        runner.execute(
+            output_path=get_base_dir() / "temp" / "result.json", 
+            query=query, 
+            params=[], 
+            timeout=30
         )
+        # JSON読み込み
+        loader = JSONLoader()
+        result = loader.load(
+            get_base_dir() / "temp" / "result.json"
+        )
+        # 結果セット表示
         self._show_query_result(result)
 
     # 結果セットを表示する
