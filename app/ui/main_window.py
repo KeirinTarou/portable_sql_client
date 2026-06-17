@@ -64,30 +64,43 @@ class MainWindow(QMainWindow):
     #  クリックイベントを受け取る
     def _on_exec_button_clicked(self):
         """ 「クエリ実行！」ボタンのクリックイベントの処理"""
-        # エディタからクエリ取り出し
-        query = self.sql_editor.toPlainText()
-        # 踏み台Excelにクエリを投げる
-        runner = ExcelRunner()
-        # クエリ実行
-        runner.execute(
-            output_path=get_base_dir() / "temp" / "result.json", 
-            query=query, 
-            params=[], 
-            timeout=30
-        )
+        # 想定外の例外をキャッチ
+        try:
+            # エディタからクエリ取り出し
+            query = self.sql_editor.toPlainText()
+            # 踏み台Excelにクエリを投げる
+            runner = ExcelRunner()
+            # クエリ実行
+            runner.execute(
+                output_path=get_base_dir() / "temp" / "result.json", 
+                query=query, 
+                params=[], 
+                timeout=30
+            )
+        except Exception as e:
+            self._show_error(f"on ExcelRunner.execute(): {str(e)}")
+            return
 
-        # JSON読み込み
-        loader = JSONLoader()
-        result = loader.load(
-            get_base_dir() / "temp" / "result.json"
-        )
+        try:
+            # JSON読み込み
+            loader = JSONLoader()
+            result = loader.load(
+                get_base_dir() / "temp" / "result.json"
+            )
+        except Exception as e:
+            self._show_error(f"on JSONLoader.load(): {str(e)}")
+            return
 
         if result.is_error:
             self._show_error(result.error_message)
             return
 
-        # 結果セット表示
-        self._show_query_result(result)
+        try:
+            # 結果セット表示
+            self._show_query_result(result)
+        except Exception as e:
+            self._show_error(f"on MainWindwo._show_query_result(): {str(e)}")
+            return
 
     def _show_query_result(
             self, 
