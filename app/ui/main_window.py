@@ -120,10 +120,13 @@ class MainWindow(QMainWindow):
         for row_index, row in enumerate(result.rows):
             for col_index, value in enumerate(row):
                 # セルにはQTableWidgetItemインスタンスを闘魂注入
+                text = str(value)
+                item = QTableWidgetItem(text)
+                item.setToolTip(text)
                 self.result_table.setItem(
                     row_index, 
                     col_index, 
-                    QTableWidgetItem(str(value))    
+                    item    
                 )
 
     def _show_error(self, message: str):
