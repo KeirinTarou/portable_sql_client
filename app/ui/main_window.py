@@ -51,6 +51,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.sql_editor, 3)
         # 「クエリ実行！」ボタンを追加
         layout.addLayout(button_layout)
+
         # 結果表示テーブルを追加
         layout.addWidget(self.result_table, 2)
 
@@ -106,6 +107,8 @@ class MainWindow(QMainWindow):
             self, 
             result: QueryResult):
         """ 結果セットをテーブルに表示する"""
+        MAX_COL_WIDTH = 200
+        
         self.result_table.setColumnCount(
             result.column_count
         )
@@ -120,10 +123,42 @@ class MainWindow(QMainWindow):
         for row_index, row in enumerate(result.rows):
             for col_index, value in enumerate(row):
                 # セルにはQTableWidgetItemインスタンスを闘魂注入
+                text = str(value)
+                item = QTableWidgetItem(text)
+                item.setToolTip(text)
                 self.result_table.setItem(
                     row_index, 
                     col_index, 
-                    QTableWidgetItem(str(value))    
+                    item    
+                )
+
+        # 内容に応じて列幅自動調整
+        self.result_table.resizeColumnsToContents()
+        # テーブルのヘッダの設定
+        self.result_table.horizontalHeader().setStyleSheet(
+            """
+            QHeaderView::section {
+                background-color: #333;
+                color: #fff;
+                font-weight: bold;
+            }
+            """
+        )
+        # 行の背景色の縞模様
+        self.result_table.setAlternatingRowColors(True)
+        # セル選択時に行全体をハイライト
+        self.result_table.setSelectionBehavior(
+            QTableWidget.SelectionBehavior.SelectRows
+        )
+
+        # 最大幅を制限
+        for col in range(self.result_table.columnCount()):
+            width = self.result_table.columnWidth(col)
+
+            if width > MAX_COL_WIDTH:
+                self.result_table.setColumnWidth(
+                    col, 
+                    MAX_COL_WIDTH
                 )
 
     def _show_error(self, message: str):

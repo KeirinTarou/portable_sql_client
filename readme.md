@@ -53,5 +53,3 @@ portable_sql_client/
     - Resultモデル
     - Status（SUCCESS / ERROR）
     - 👉 ただし最初は薄くていい
-
-
