@@ -1,8 +1,10 @@
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, 
     QHBoxLayout, 
-    QPlainTextEdit, QPushButton, 
+    QPlainTextEdit, 
+    QPushButton, 
     QTableWidget, QTableWidgetItem)
+from PyQt6.QtGui import QFont
 
 from app.core.paths import get_base_dir
 from app.models.query_result import QueryResult
@@ -26,7 +28,7 @@ class MainWindow(QMainWindow):
         # ウィンドウサイズ（固定）
         self.resize(800, 600)
         # SQL入力用エディタ
-        self.sql_editor = QPlainTextEdit()
+        self._setup_sql_editor()
         # SQL実行ボタン（サイズ固定）
         self.exec_button = QPushButton("クエリ実行！")
         self.exec_button.setFixedHeight(40)
@@ -62,6 +64,12 @@ class MainWindow(QMainWindow):
         )
 
     # Private method
+    # エディタのセットアップ
+    def _setup_sql_editor(self):
+        self.sql_editor = QPlainTextEdit()
+        font = QFont("Consolas", 10)
+        self.sql_editor.setFont(font)
+
     #  クリックイベントを受け取る
     def _on_exec_button_clicked(self):
         """ 「クエリ実行！」ボタンのクリックイベントの処理"""
