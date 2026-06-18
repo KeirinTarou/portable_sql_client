@@ -4,7 +4,8 @@ from PyQt6.QtWidgets import (
     QPlainTextEdit, 
     QPushButton, 
     QTableWidget, QTableWidgetItem)
-from PyQt6.QtGui import QFont
+from PyQt6.QtGui import (
+    QFont, QFontMetrics)
 
 from app.core.paths import get_base_dir
 from app.models.query_result import QueryResult
@@ -67,8 +68,14 @@ class MainWindow(QMainWindow):
     # エディタのセットアップ
     def _setup_sql_editor(self):
         self.sql_editor = QPlainTextEdit()
+        # フォントの設定
         font = QFont("Consolas", 10)
         self.sql_editor.setFont(font)
+        # タブ幅の調整
+        metrics = QFontMetrics(font)
+        self.sql_editor.setTabStopDistance(
+            metrics.horizontalAdvance(" ") * 4
+        )
 
     #  クリックイベントを受け取る
     def _on_exec_button_clicked(self):
