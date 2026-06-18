@@ -47,6 +47,14 @@ class SQLEditor(QPlainTextEdit):
             extra_selections
         )
 
+    def _indent(self):
+        cursor = self.textCursor()
+        print(cursor.hasSelection())
+        if cursor.hasSelection():
+            pass
+        else:
+            cursor.insertText("\t")
+
     def _outdent(self):
         cursor = self.textCursor()
 
@@ -63,6 +71,10 @@ class SQLEditor(QPlainTextEdit):
     
     # keyPressイベントをフック
     def keyPressEvent(self, event):
+        if event.key() == Qt.Key.Key_Tab:
+            self._indent()
+            return
+        
         if event.key() == Qt.Key.Key_Backtab:
             self._outdent()
             return
