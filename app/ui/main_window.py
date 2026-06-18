@@ -51,6 +51,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.sql_editor, 3)
         # 「クエリ実行！」ボタンを追加
         layout.addLayout(button_layout)
+
         # 結果表示テーブルを追加
         layout.addWidget(self.result_table, 2)
 
@@ -106,6 +107,8 @@ class MainWindow(QMainWindow):
             self, 
             result: QueryResult):
         """ 結果セットをテーブルに表示する"""
+        MAX_COL_WIDTH = 200
+        
         self.result_table.setColumnCount(
             result.column_count
         )
@@ -127,6 +130,19 @@ class MainWindow(QMainWindow):
                     row_index, 
                     col_index, 
                     item    
+                )
+
+        # 内容に応じて列幅自動調整
+        self.result_table.resizeColumnsToContents()
+
+        # 最大幅を制限
+        for col in range(self.result_table.columnCount()):
+            width = self.result_table.columnWidth(col)
+
+            if width > MAX_COL_WIDTH:
+                self.result_table.setColumnWidth(
+                    col, 
+                    MAX_COL_WIDTH
                 )
 
     def _show_error(self, message: str):
