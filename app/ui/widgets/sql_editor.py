@@ -1,5 +1,7 @@
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QPlainTextEdit, QTextEdit
 from PyQt6.QtGui import (
+    QTextCursor, 
     QFont, QFontMetrics, 
     QColor, QTextFormat)
 
@@ -44,3 +46,25 @@ class SQLEditor(QPlainTextEdit):
         self.setExtraSelections(
             extra_selections
         )
+
+    def _outdent(self):
+        cursor = self.textCursor()
+
+        block_text = cursor.block().text()
+
+        if not block_text.startswith("\t"):
+            return
+
+        cursor.movePosition(
+            QTextCursor.MoveOperation.StartOfLine
+        )
+
+        cursor.deleteChar()
+    
+    # keyPressイベントをフック
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key.Key_Backtab:
+            self._outdent()
+            return
+
+        super().keyPressEvent(event)
