@@ -1,7 +1,7 @@
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QPlainTextEdit, QTextEdit
 from PyQt6.QtGui import (
-    QTextCursor, 
+    QTextCursor, QTextBlock, 
     QFont, QFontMetrics, 
     QColor, QTextFormat)
 
@@ -81,17 +81,25 @@ class SQLEditor(QPlainTextEdit):
 
     def _outdent(self):
         cursor = self.textCursor()
-
-        block_text = cursor.block().text()
-
-        if not block_text.startswith("\t"):
-            return
-
-        cursor.movePosition(
-            QTextCursor.MoveOperation.StartOfLine
-        )
-
-        cursor.deleteChar()
+        doc = cursor.document()
+        if cursor.hasSelection():
+            # エディタの文字列内におけるカーソルの相対位置取得
+            start = cursor.selectionStart()
+            end = cursor.selectionEnd()
+            # カーソルの開始位置・終了位置が属する行位置（0始まり）を取得
+            doc = cursor.document()
+            start_line = (
+                doc.findBlock(start).blockNumber()
+            )
+            end_line = (
+                doc.findBlock(max(start, end - 1)).blockNumber()
+            )
+            for line_no in range(start_line, end_line + 1):
+                block = doc.findBlockByNumber(line_no)
+                self._remove_indent(cursor, block)    
+        else:
+            block = cursor.block()
+            self._remove_indent(cursor, block)
     
     # keyPressイベントをフック
     def keyPressEvent(self, event):
@@ -104,3 +112,19 @@ class SQLEditor(QPlainTextEdit):
             return
 
         super().keyPressEvent(event)
+
+    # アウトデント用ヘルパ
+    def _remove_indent(self, cursor: QTextCursor, block: QTextBlock):
+        text = block.text()
+        cursor.setPosition(block.position())
+        del_len = 0
+        if text.startswith("\t"):
+            del_len = 1
+        elif text.startswith("    "):
+            del_len = 4
+        cursor.movePosition(
+            QTextCursor.MoveOperation.Right, 
+            QTextCursor.MoveMode.KeepAnchor, 
+            del_len
+        )
+        cursor.removeSelectedText()
