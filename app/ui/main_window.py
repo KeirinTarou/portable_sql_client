@@ -136,6 +136,10 @@ class MainWindow(QMainWindow):
         self.result_table.resizeColumnsToContents()
         # 行の背景色の縞模様
         self.result_table.setAlternatingRowColors(True)
+        # セル選択時に行全体をハイライト
+        self.result_table.setSelectionBehavior(
+            QTableWidget.SelectionBehavior.SelectRows
+        )
 
         # 最大幅を制限
         for col in range(self.result_table.columnCount()):
