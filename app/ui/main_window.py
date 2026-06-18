@@ -134,6 +134,8 @@ class MainWindow(QMainWindow):
 
         # 内容に応じて列幅自動調整
         self.result_table.resizeColumnsToContents()
+        # 行の背景色の縞模様
+        self.result_table.setAlternatingRowColors(True)
 
         # 最大幅を制限
         for col in range(self.result_table.columnCount()):
