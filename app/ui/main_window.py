@@ -134,6 +134,16 @@ class MainWindow(QMainWindow):
 
         # 内容に応じて列幅自動調整
         self.result_table.resizeColumnsToContents()
+        # テーブルのヘッダの設定
+        self.result_table.horizontalHeader().setStyleSheet(
+            """
+            QHeaderView::section {
+                background-color: #333;
+                color: #fff;
+                font-weight: bold;
+            }
+            """
+        )
         # 行の背景色の縞模様
         self.result_table.setAlternatingRowColors(True)
         # セル選択時に行全体をハイライト
