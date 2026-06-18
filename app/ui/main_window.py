@@ -1,11 +1,12 @@
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, 
     QHBoxLayout, 
-    QPlainTextEdit, 
+    QPlainTextEdit, QTextEdit, 
     QPushButton, 
     QTableWidget, QTableWidgetItem)
 from PyQt6.QtGui import (
-    QFont, QFontMetrics)
+    QFont, QFontMetrics, 
+    QColor, QTextFormat)
 
 from app.core.paths import get_base_dir
 from app.models.query_result import QueryResult
@@ -76,6 +77,35 @@ class MainWindow(QMainWindow):
         self.sql_editor.setTabStopDistance(
             metrics.horizontalAdvance(" ") * 4
         )
+        # 現在行ハイライト
+        self.sql_editor.cursorPositionChanged.connect(
+            self._highlight_current_line
+        )
+
+    def _highlight_current_line(self):
+        extra_selections = []
+
+        if not self.sql_editor.isReadOnly():
+            selection = QTextEdit.ExtraSelection()
+
+            selection.format.setBackground(
+                QColor(245, 245, 220)
+            )
+
+            selection.format.setProperty(
+                QTextFormat.Property.FullWidthSelection, 
+                True
+            )
+
+            selection.cursor = self.sql_editor.textCursor()
+            selection.cursor.clearSelection()
+
+            extra_selections.append(selection)
+        
+        self.sql_editor.setExtraSelections(
+            extra_selections
+        )
+
 
     #  クリックイベントを受け取る
     def _on_exec_button_clicked(self):
