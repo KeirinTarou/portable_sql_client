@@ -1,18 +1,15 @@
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, 
     QHBoxLayout, 
-    QPlainTextEdit, QTextEdit, 
     QPushButton, 
     QTableWidget, QTableWidgetItem)
-from PyQt6.QtGui import (
-    QFont, QFontMetrics, 
-    QColor, QTextFormat)
 
 from app.core.paths import get_base_dir
 from app.models.query_result import QueryResult
 from app.infrastructure.excel_runner import ExcelRunner
 from app.infrastructure.json_loader import JSONLoader
 from app.core.text_utils import truncate
+from app.ui.widgets.sql_editor import SQLEditor
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -30,7 +27,7 @@ class MainWindow(QMainWindow):
         # ウィンドウサイズ（固定）
         self.resize(800, 600)
         # SQL入力用エディタ
-        self._setup_sql_editor()
+        self.sql_editor = SQLEditor()
         # SQL実行ボタン（サイズ固定）
         self.exec_button = QPushButton("クエリ実行！")
         self.exec_button.setFixedHeight(40)
@@ -66,47 +63,6 @@ class MainWindow(QMainWindow):
         )
 
     # Private method
-    # エディタのセットアップ
-    def _setup_sql_editor(self):
-        self.sql_editor = QPlainTextEdit()
-        # フォントの設定
-        font = QFont("Consolas", 10)
-        self.sql_editor.setFont(font)
-        # タブ幅の調整
-        metrics = QFontMetrics(font)
-        self.sql_editor.setTabStopDistance(
-            metrics.horizontalAdvance(" ") * 4
-        )
-        # 現在行ハイライト
-        self.sql_editor.cursorPositionChanged.connect(
-            self._highlight_current_line
-        )
-
-    def _highlight_current_line(self):
-        extra_selections = []
-
-        if not self.sql_editor.isReadOnly():
-            selection = QTextEdit.ExtraSelection()
-
-            selection.format.setBackground(
-                QColor(245, 245, 220)
-            )
-
-            selection.format.setProperty(
-                QTextFormat.Property.FullWidthSelection, 
-                True
-            )
-
-            selection.cursor = self.sql_editor.textCursor()
-            selection.cursor.clearSelection()
-
-            extra_selections.append(selection)
-        
-        self.sql_editor.setExtraSelections(
-            extra_selections
-        )
-
-
     #  クリックイベントを受け取る
     def _on_exec_button_clicked(self):
         """ 「クエリ実行！」ボタンのクリックイベントの処理"""
