@@ -49,9 +49,22 @@ class SQLEditor(QPlainTextEdit):
 
     def _indent(self):
         cursor = self.textCursor()
-        print(cursor.hasSelection())
         if cursor.hasSelection():
-            pass
+            start = cursor.selectionStart()
+            end = cursor.selectionEnd()
+            start_line = (
+                cursor.document().findBlock(start).blockNumber()
+            )
+            end_line = (
+                cursor.document().findBlock(end).blockNumber()
+            )
+            for line_no in range(start_line, end_line + 1):
+                block = cursor.document().findBlockByLineNumber(line_no)
+                cursor.setPosition(
+                    block.position()
+                )
+                cursor.insertText("\t")
+
         else:
             cursor.insertText("\t")
 
