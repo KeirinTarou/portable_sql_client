@@ -49,22 +49,33 @@ class SQLEditor(QPlainTextEdit):
 
     def _indent(self):
         cursor = self.textCursor()
+        # カーソルが選択状態
         if cursor.hasSelection():
+            # エディタの文字列内におけるカーソルの相対位置取得
             start = cursor.selectionStart()
             end = cursor.selectionEnd()
+            # カーソルの開始位置・終了位置が属する行位置（0始まり）を取得
+            # QTextDocumentオブジェクト取得
+            #   - エディタ内の全文を表すオブジェクト
+            doc = cursor.document()
             start_line = (
-                cursor.document().findBlock(start).blockNumber()
+                doc.findBlock(start).blockNumber()
             )
             end_line = (
-                cursor.document().findBlock(end).blockNumber()
+                # カーソルの終端が行頭 -> 前行末に補正
+                #   - 文字が選択されていない行を含めないため
+                doc.findBlock(max(start, end - 1)).blockNumber()
             )
             for line_no in range(start_line, end_line + 1):
-                block = cursor.document().findBlockByLineNumber(line_no)
+                block = cursor.document().findBlockByNumber(line_no)
+                # 行の先頭位置にカーソルをセット
                 cursor.setPosition(
+                    # 行の先頭位置を取得
                     block.position()
                 )
+                # カーソル位置にタブを追加
                 cursor.insertText("\t")
-
+        # カーソルが点滅状態
         else:
             cursor.insertText("\t")
 
