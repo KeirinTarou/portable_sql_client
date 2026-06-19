@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, 
     QHBoxLayout, 
-    QPlainTextEdit, QPushButton, 
+    QPushButton, 
     QTableWidget, QTableWidgetItem)
 
 from app.core.paths import get_base_dir
@@ -9,6 +9,7 @@ from app.models.query_result import QueryResult
 from app.infrastructure.excel_runner import ExcelRunner
 from app.infrastructure.json_loader import JSONLoader
 from app.core.text_utils import truncate
+from app.ui.widgets.sql_editor import SQLEditor
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -26,7 +27,7 @@ class MainWindow(QMainWindow):
         # ウィンドウサイズ（固定）
         self.resize(800, 600)
         # SQL入力用エディタ
-        self.sql_editor = QPlainTextEdit()
+        self.sql_editor = SQLEditor()
         # SQL実行ボタン（サイズ固定）
         self.exec_button = QPushButton("クエリ実行！")
         self.exec_button.setFixedHeight(40)
