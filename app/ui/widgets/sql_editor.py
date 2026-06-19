@@ -7,6 +7,8 @@ from PyQt6.QtGui import (
     QFont, QFontMetrics, 
     QColor, QTextFormat)
 
+from app.ui.widgets.sql_highlighter import SQLHighlighter
+
 class SQLEditor(QPlainTextEdit):
     def __init__(self):
         super().__init__()
@@ -24,6 +26,10 @@ class SQLEditor(QPlainTextEdit):
         )
         # 現在行ハイライトを呼ぶ
         self._highlight_current_line()
+
+        self.hilighter = SQLHighlighter(
+            self.document
+        )
 
     def _highlight_current_line(self):
         extra_selections = []
