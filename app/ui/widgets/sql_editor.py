@@ -1,3 +1,5 @@
+from typing import Tuple
+
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QPlainTextEdit, QTextEdit
 from PyQt6.QtGui import (
@@ -48,24 +50,19 @@ class SQLEditor(QPlainTextEdit):
         )
 
     def _indent(self):
+        """ カーソル行 or 選択行にインデントを追加する
+
+        .. note::
+        - カーソル点滅時
+            - カーソル位置にTab（`\t`）を挿入
+        - 選択時
+            - 選択中の各行の先頭にTab（`\t`）を追加
+            - 選択位置の最後が行頭のとき、最終行にはTabを追加しない
+        """
         cursor = self.textCursor()
         # カーソルが選択状態
         if cursor.hasSelection():
-            # エディタの文字列内におけるカーソルの相対位置取得
-            start = cursor.selectionStart()
-            end = cursor.selectionEnd()
-            # カーソルの開始位置・終了位置が属する行位置（0始まり）を取得
-            # QTextDocumentオブジェクト取得
-            #   - エディタ内の全文を表すオブジェクト
-            doc = cursor.document()
-            start_line = (
-                doc.findBlock(start).blockNumber()
-            )
-            end_line = (
-                # カーソルの終端が行頭 -> 前行末に補正
-                #   - 文字が選択されていない行を含めないため
-                doc.findBlock(max(start, end - 1)).blockNumber()
-            )
+            start_line, end_line = self._selected_line_range(cursor)
             for line_no in range(start_line, end_line + 1):
                 block = cursor.document().findBlockByNumber(line_no)
                 # 行の先頭位置にカーソルをセット
@@ -80,20 +77,20 @@ class SQLEditor(QPlainTextEdit):
             cursor.insertText("\t")
 
     def _outdent(self):
+        """ カーソル行 or 選択行をアウトデントする
+
+        .. note::
+        - カーソル点滅時
+            - カーソル位置のある行の先頭のTab（\t）を削除
+            - 行頭が半角スペース4個の場合は半角スペース4個を削除
+        - 選択時
+            - 選択中の各行の先頭のTab（`\t`）または半角スペース4個を削除
+            - 選択位置の最後が行頭のとき、最終行の行頭Tabや半角スペース4個は削除しない
+        """
         cursor = self.textCursor()
         doc = cursor.document()
         if cursor.hasSelection():
-            # エディタの文字列内におけるカーソルの相対位置取得
-            start = cursor.selectionStart()
-            end = cursor.selectionEnd()
-            # カーソルの開始位置・終了位置が属する行位置（0始まり）を取得
-            doc = cursor.document()
-            start_line = (
-                doc.findBlock(start).blockNumber()
-            )
-            end_line = (
-                doc.findBlock(max(start, end - 1)).blockNumber()
-            )
+            start_line, end_line = self._selected_line_range(cursor)
             for line_no in range(start_line, end_line + 1):
                 block = doc.findBlockByNumber(line_no)
                 self._remove_indent(cursor, block)    
@@ -113,8 +110,12 @@ class SQLEditor(QPlainTextEdit):
 
         super().keyPressEvent(event)
 
-    # アウトデント用ヘルパ
     def _remove_indent(self, cursor: QTextCursor, block: QTextBlock):
+        """ アウトデント用ヘルパ
+        
+        .. note::
+        - ブロックの先頭がTabかスペース4個かに応じて適切に削除する
+        """
         text = block.text()
         cursor.setPosition(block.position())
         del_len = 0
@@ -128,3 +129,24 @@ class SQLEditor(QPlainTextEdit):
             del_len
         )
         cursor.removeSelectedText()
+
+    def _selected_line_range(
+            self, 
+            cursor: QTextCursor) -> Tuple[int, int]:
+        """ 選択位置の開始行・終了行位置（0始まり）を返す
+        
+        .. note::
+        - カーソル終端が行頭にあるときは、カーソル行は含めない
+        """
+        # エディタの文字列内におけるカーソルの相対位置取得
+        start = cursor.selectionStart()
+        end = cursor.selectionEnd()
+        # カーソルの開始位置・終了位置が属する行位置（0始まり）を取得
+        doc = cursor.document()
+        start_line = (
+            doc.findBlock(start).blockNumber()
+        )
+        end_line = (
+            doc.findBlock(max(start, end - 1)).blockNumber()
+        )
+        return (start_line, end_line) 
