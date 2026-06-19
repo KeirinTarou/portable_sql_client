@@ -28,7 +28,7 @@ class SQLEditor(QPlainTextEdit):
         self._highlight_current_line()
 
         self.hilighter = SQLHighlighter(
-            self.document
+            self.document()
         )
 
     def _highlight_current_line(self):
