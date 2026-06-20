@@ -2,6 +2,11 @@ from pathlib import Path
 import sys
 
 def get_base_dir() -> Path:
+    """ プロジェクトのルートディレクトリを解決する
+    
+    .. note::
+    - app/core/paths.py
+    """
     if getattr(sys, 'frozen', False):
         # PyInstaller向け
         return Path(sys.executable).parent
