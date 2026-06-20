@@ -1,6 +1,7 @@
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, 
     QHBoxLayout, 
+    QListWidget, 
     QPushButton, 
     QTableWidget, QTableWidgetItem)
 from PyQt6.QtCore import Qt
@@ -29,6 +30,8 @@ class MainWindow(QMainWindow):
         self.resize(800, 600)
         # SQL入力用エディタ
         self.sql_editor = SQLEditor()
+        # テーブル一覧表示用リスト
+        self.table_list = QListWidget()
         # SQL実行ボタン（サイズ固定）
         self.exec_button = QPushButton("クエリ実行！")
         self.exec_button.setFixedHeight(40)
@@ -47,9 +50,13 @@ class MainWindow(QMainWindow):
         # 中央に親ウィジェットを配置
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
-        # ボックスレイアウトの作成
+        # メインボックスレイアウトの作成
         layout = QVBoxLayout()
         central_widget.setLayout(layout)
+        # 最上段のボックスレイアウト
+        top_layout = QHBoxLayout()
+        top_layout.addWidget(self.sql_editor, 2)
+        top_layout.addWidget(self.table_list, 1)
         # ボタンのレイアウト
         button_layout = QHBoxLayout()
         # 〝伸びる空白（stretch）〟を追加（add）して右寄せにする
@@ -57,7 +64,9 @@ class MainWindow(QMainWindow):
         button_layout.addWidget(self.exec_button)
 
         # テキストエリアを追加
-        layout.addWidget(self.sql_editor, 3)
+        # 最上段のレイアウトをメインレイアウトに追加
+        layout.addLayout(top_layout, 3)
+        # layout.addWidget(self.sql_editor, 3)
         # 「クエリ実行！」ボタンを追加
         layout.addLayout(button_layout)
 
