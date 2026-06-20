@@ -15,6 +15,7 @@ from app.infrastructure.excel_runner import ExcelRunner
 from app.infrastructure.json_loader import JSONLoader
 from app.core.text_utils import truncate
 from app.ui.widgets.sql_editor import SQLEditor
+from app.ui.widgets.table_browser_dialog import TableBrowserDialog
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -74,6 +75,12 @@ class MainWindow(QMainWindow):
         table_list_laytout.addWidget(self.table_list)
         top_layout.addWidget(self.sql_editor, 2)
         top_layout.addLayout(table_list_laytout, 1)
+
+        # テーブル名リストのアイテムにダブルクリックイベントをバインド
+        self.table_list.itemDoubleClicked.connect(
+            self._on_table_list_double_clicked
+        )
+
         # ボタンのレイアウト
         button_layout = QHBoxLayout()
         # 〝伸びる空白（stretch）〟を追加（add）して右寄せにする
@@ -216,3 +223,8 @@ class MainWindow(QMainWindow):
             ]
         )
         self._show_query_result(result)
+
+    # テーブル情報表示ダイアログまわり
+    def _on_table_list_double_clicked(self, item):
+        dialog = TableBrowserDialog(self)
+        dialog.exec()
