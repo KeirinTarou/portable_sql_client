@@ -24,11 +24,18 @@ class SQLHighlighter(QSyntaxHighlighter):
             "BY", "HAVING", "ORDER", "ASC", "DESC", 
             "AS", "ON", "IN", "LIKE", "OR", 
             "AND", "NOT", "CASE", "WHEN", "THEN", 
-            "ELSE", "END", "NULL", "TRUE", "FALSE", 
+            "ELSE", "END", "IS",  
             "WITH", "UNION", "ALL", "EXISTS", 
         ]
         for kw in keywords:
-            self._add_keyword_rule(kw)
+            self._add_keyword_rule(kw, COLOR_CRIMSON)
+
+        # 準キーワード用ルールを追加
+        sub_keywords = [
+            "NULL", "TRUE", "FALSE", "SYSDATE"
+        ]
+        for kw in sub_keywords:
+            self._add_keyword_rule(kw, COLOR_CORAL)
 
         # コメント用ルールを追加
         comment_patterns = [
@@ -57,10 +64,10 @@ class SQLHighlighter(QSyntaxHighlighter):
                     fmt
                 )
 
-    def _add_keyword_rule(self, keyword: str):
+    def _add_keyword_rule(self, keyword: str, color: str):
         fmt = QTextCharFormat()
         fmt.setForeground(
-            QColor(COLOR_CRIMSON)
+            QColor(color)
         )
 
         self.rules.append(
