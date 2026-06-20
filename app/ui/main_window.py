@@ -3,6 +3,7 @@ from PyQt6.QtWidgets import (
     QHBoxLayout, 
     QPushButton, 
     QTableWidget, QTableWidgetItem)
+from PyQt6.QtCore import Qt
 
 from app.core.paths import get_base_dir
 from app.models.query_result import QueryResult
@@ -32,6 +33,10 @@ class MainWindow(QMainWindow):
         self.exec_button = QPushButton("クエリ実行！")
         self.exec_button.setFixedHeight(40)
         self.exec_button.setFixedWidth(80)
+        # マウスホバーでポインタ変更
+        self.exec_button.setCursor(
+            Qt.CursorShape.PointingHandCursor
+        )
         # 結果表示テーブル
         self.result_table = QTableWidget()
 
