@@ -1,3 +1,5 @@
+from typing import List
+
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, 
     QHBoxLayout, 
@@ -6,6 +8,7 @@ from PyQt6.QtWidgets import (
     QTableWidget, QTableWidgetItem)
 from PyQt6.QtCore import Qt
 
+from config import TABLE_NAMES_FILE
 from app.core.paths import get_base_dir
 from app.models.query_result import QueryResult
 from app.infrastructure.excel_runner import ExcelRunner
@@ -32,6 +35,8 @@ class MainWindow(QMainWindow):
         self.sql_editor = SQLEditor()
         # テーブル一覧表示用リスト
         self.table_list = QListWidget()
+        # テーブル名リスト読み込み
+        self.table_list.addItems(self._load_table_names())
         # SQL実行ボタン（サイズ固定）
         self.exec_button = QPushButton("クエリ実行！")
         self.exec_button.setFixedHeight(40)
@@ -80,6 +85,16 @@ class MainWindow(QMainWindow):
         )
 
     # Private method
+    # テーブル名リストを読み込む
+    def _load_table_names(self) -> List[str]:
+        with open(TABLE_NAMES_FILE, encoding="utf-8") as f:
+            # テキストファイルから1行ずつ取り出してリストにして返す
+            return [
+                line.strip() for line in f 
+                # 空行、`#`で始まる行は無視
+                if (line.strip() and not line.lstrip().startswith("#"))
+            ]
+
     #  クリックイベントを受け取る
     def _on_exec_button_clicked(self):
         """ 「クエリ実行！」ボタンのクリックイベントの処理"""
