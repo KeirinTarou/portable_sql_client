@@ -13,31 +13,17 @@ class SQLHighlighter(QSyntaxHighlighter):
         super().__init__(document)
 
         self.rules = []
-        keyword_rules = [
-            ("SELECT", COLOR_CRIMSON), 
-            ("FROM", COLOR_CRIMSON), 
-            ("JOIN", COLOR_CRIMSON), 
-            ("INNER", COLOR_CRIMSON), 
-            ("OUTER", COLOR_CRIMSON), 
-            ("CROSS", COLOR_CRIMSON), 
-            ("LEFT", COLOR_CRIMSON), 
-            ("RIGHT", COLOR_CRIMSON), 
-            ("WHERE", COLOR_CRIMSON), 
-            ("GROUP", COLOR_CRIMSON), 
-            ("BY", COLOR_CRIMSON), 
-            ("HAVING", COLOR_CRIMSON), 
-            ("ORDER", COLOR_CRIMSON), 
-            ("ASC", COLOR_CRIMSON), 
-            ("DESC", COLOR_CRIMSON), 
-            ("AS", COLOR_CRIMSON), 
-            ("ON", COLOR_CRIMSON), 
-            ("IN", COLOR_CRIMSON), 
+        keywords = [
+            "SELECT", "FROM", "JOIN", "INNER", "OUTER", 
+            "CROSS", "LEFT", "RIGHT", "WHERE", "GROUP", 
+            "BY", "HAVING", "ORDER", "ASC", "DESC", 
+            "AS", "ON", "IN", "LIKE", "OR", 
+            "AND", "NOT", "CASE", "WHEN", "THEN", 
+            "ELSE", "END", "NULL"
         ]
-        for rule in keyword_rules:
-            keyword, color = rule
-            self._add_keyword_rule(
-                keyword, color
-            )
+        # キーワード・演算子用ルールを追加
+        for kw in keywords:
+            self._add_keyword_rule(kw)
 
     def highlightBlock(self, text):
         for pattern, fmt in self.rules:
@@ -48,10 +34,10 @@ class SQLHighlighter(QSyntaxHighlighter):
                     fmt
                 )
 
-    def _add_keyword_rule(self, keyword: str, color: str):
+    def _add_keyword_rule(self, keyword: str):
         fmt = QTextCharFormat()
         fmt.setForeground(
-            QColor(color)
+            QColor(COLOR_CRIMSON)
         )
 
         self.rules.append(
