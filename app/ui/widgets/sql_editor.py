@@ -105,25 +105,101 @@ class SQLEditor(QPlainTextEdit):
             block = cursor.block()
             self._remove_indent(cursor, block)
     
-    # keyPressイベントをフック
     def keyPressEvent(self, event):
+        """ keyPressイベントをフック"""
+        # Tabキー
         if event.key() == Qt.Key.Key_Tab:
             self._indent()
             return
-        
+        # Shift + Tab
         if event.key() == Qt.Key.Key_Backtab:
             self._outdent()
             return
-        
+        # Enter
         if event.key() in (
             Qt.Key.Key_Return, 
             Qt.Key.Key_Enter):
             self._auto_indent()
             return
+        # Ctrl + /
+        if (
+            event.key() == Qt.Key.Key_Slash
+            and event.modifiers() == Qt.KeyboardModifier.ControlModifier):
+            self._toggle_comment()
+            return
+
 
         super().keyPressEvent(event)
 
+    def _toggle_comment(self):
+        cursor = self.textCursor()
+        doc = cursor.document()
+        # カーソルが選択状態
+        has_selection = cursor.hasSelection()
+        if has_selection:
+            start_line, end_line = self._selected_line_range(cursor)
+            blocks = [
+                doc.findBlockByNumber(line_no) 
+                for line_no in range(start_line, end_line + 1)
+            ]
+        # カーソルが点滅状態
+        else:
+            blocks = [cursor.block()]
+
+        # 選択行全体がコメントアウトされているかどうか
+        all_commented = False
+        all_commented = \
+            all(
+                block.text().lstrip().startswith("--") 
+                for block in blocks)
+        
+        for block in blocks:
+            if all_commented:
+                self._uncomment_block(cursor, block)
+            else:
+                self._comment_block(cursor, block, has_selection)
+
+    def _comment_block(
+            self, 
+            cursor: QTextCursor, block: QTextBlock, 
+            has_selection: bool = False):
+        text = block.text()
+        indent_len = \
+            (len(text) - len(text.lstrip()))
+        if has_selection:
+            cursor.setPosition(block.position())
+        else:
+            cursor.setPosition(block.position() + indent_len)
+
+        cursor.insertText("-- ")
+
+    def _uncomment_block(
+            self, 
+            cursor: QTextCursor, block: QTextBlock):
+        text = block.text()
+        indent_len = \
+            (len(text) - len(text.lstrip()))
+        # 先頭のタブ・スペースを取り除いた文字列取得
+        stripped = text.lstrip()
+        if not stripped.startswith("--"):
+            return
+        
+        cursor.setPosition(block.position() + indent_len)
+        # 削る文字数を求める
+        del_len = 2
+        if stripped.startswith("-- "):
+            del_len = 3
+        # 削る部分を指定
+        cursor.movePosition(
+            QTextCursor.MoveOperation.Right, 
+            QTextCursor.MoveMode.KeepAnchor, 
+            del_len
+        )
+        # 削る
+        cursor.removeSelectedText()
+
     def _auto_indent(self):
+        """ オートインデント用ヘルパ"""
         cursor = self.textCursor()
         block = cursor.block()
         text = block.text()
