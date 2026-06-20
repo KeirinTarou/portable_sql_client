@@ -3,7 +3,7 @@ from typing import List
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, 
     QHBoxLayout, 
-    QListWidget, 
+    QLabel, QListWidget, 
     QPushButton, 
     QTableWidget, QTableWidgetItem)
 from PyQt6.QtCore import Qt
@@ -33,6 +33,14 @@ class MainWindow(QMainWindow):
         self.resize(800, 600)
         # SQL入力用エディタ
         self.sql_editor = SQLEditor()
+        # テーブル一覧表示用リスト用のラベル
+        table_list_label = QLabel("Table names")
+        table_list_label.setStyleSheet("""
+            background-color: #eee;
+            color: #111;
+            font-weight: bold;
+            padding: 4px;
+        """)
         # テーブル一覧表示用リスト
         self.table_list = QListWidget()
         # テーブル名リスト読み込み
@@ -60,8 +68,12 @@ class MainWindow(QMainWindow):
         central_widget.setLayout(layout)
         # 最上段のボックスレイアウト
         top_layout = QHBoxLayout()
+        # ラベル + テーブル名リストのレイアウト
+        table_list_laytout = QVBoxLayout()
+        table_list_laytout.addWidget(table_list_label)
+        table_list_laytout.addWidget(self.table_list)
         top_layout.addWidget(self.sql_editor, 2)
-        top_layout.addWidget(self.table_list, 1)
+        top_layout.addLayout(table_list_laytout, 1)
         # ボタンのレイアウト
         button_layout = QHBoxLayout()
         # 〝伸びる空白（stretch）〟を追加（add）して右寄せにする
