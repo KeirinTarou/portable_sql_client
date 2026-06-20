@@ -37,6 +37,9 @@ class MainWindow(QMainWindow):
         self.exec_button.setCursor(
             Qt.CursorShape.PointingHandCursor
         )
+        # マウスホバーで色を変更
+        self.exec_button.setStyleSheet(
+            """QPushButton:hover { background-color: #e0ffff; }""")
         # テーブル情報表示ボタン（サイズ固定）
         self.browse_button = QPushButton("テーブル情報")
         self.browse_button.setFixedHeight(40)
@@ -45,6 +48,8 @@ class MainWindow(QMainWindow):
         self.browse_button.setCursor(
             Qt.CursorShape.PointingHandCursor
         )
+        self.browse_button.setStyleSheet(
+            """QPushButton:hover { background-color: #e0ffff; }""")
         # 結果表示テーブル
         self.result_table = QTableWidget()
 
