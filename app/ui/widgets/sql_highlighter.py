@@ -13,9 +13,31 @@ class SQLHighlighter(QSyntaxHighlighter):
         super().__init__(document)
 
         self.rules = []
-        self._add_keyword_rule(
-            "SELECT"
-        )
+        keyword_rules = [
+            ("SELECT", COLOR_CRIMSON), 
+            ("FROM", COLOR_CRIMSON), 
+            ("JOIN", COLOR_CRIMSON), 
+            ("INNER", COLOR_CRIMSON), 
+            ("OUTER", COLOR_CRIMSON), 
+            ("CROSS", COLOR_CRIMSON), 
+            ("LEFT", COLOR_CRIMSON), 
+            ("RIGHT", COLOR_CRIMSON), 
+            ("WHERE", COLOR_CRIMSON), 
+            ("GROUP", COLOR_CRIMSON), 
+            ("BY", COLOR_CRIMSON), 
+            ("HAVING", COLOR_CRIMSON), 
+            ("ORDER", COLOR_CRIMSON), 
+            ("ASC", COLOR_CRIMSON), 
+            ("DESC", COLOR_CRIMSON), 
+            ("AS", COLOR_CRIMSON), 
+            ("ON", COLOR_CRIMSON), 
+            ("IN", COLOR_CRIMSON), 
+        ]
+        for rule in keyword_rules:
+            keyword, color = rule
+            self._add_keyword_rule(
+                keyword, color
+            )
 
     def highlightBlock(self, text):
         for pattern, fmt in self.rules:
@@ -26,10 +48,10 @@ class SQLHighlighter(QSyntaxHighlighter):
                     fmt
                 )
 
-    def _add_keyword_rule(self, keyword: str):
+    def _add_keyword_rule(self, keyword: str, color: str):
         fmt = QTextCharFormat()
         fmt.setForeground(
-            QColor(COLOR_CRIMSON)
+            QColor(color)
         )
 
         self.rules.append(
@@ -38,6 +60,6 @@ class SQLHighlighter(QSyntaxHighlighter):
                     rf"\b{keyword}\b", 
                     re.IGNORECASE
                 ), 
-                fmt
+                fmt, 
             )
         )
