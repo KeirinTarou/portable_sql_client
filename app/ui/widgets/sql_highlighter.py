@@ -6,6 +6,7 @@ from PyQt6.QtGui import (
 )
 
 COLOR_MAROON = "#800000"
+COLOR_FORESTGREEN = "#228b22"
 COLOR_CRIMSON = "#dc143c"
 
 class SQLHighlighter(QSyntaxHighlighter):
@@ -13,6 +14,7 @@ class SQLHighlighter(QSyntaxHighlighter):
         super().__init__(document)
 
         self.rules = []
+        # キーワード・演算子用ルールを追加
         keywords = [
             "SELECT", "FROM", "JOIN", "INNER", "OUTER", 
             "CROSS", "LEFT", "RIGHT", "WHERE", "GROUP", 
@@ -21,9 +23,15 @@ class SQLHighlighter(QSyntaxHighlighter):
             "AND", "NOT", "CASE", "WHEN", "THEN", 
             "ELSE", "END", "NULL"
         ]
-        # キーワード・演算子用ルールを追加
         for kw in keywords:
             self._add_keyword_rule(kw)
+
+        # コメント用ルールを追加
+        comment_patterns = [
+            r"--.*$"
+        ]
+        for pattern in comment_patterns:
+            self._add_comment_rule(pattern)
 
     def highlightBlock(self, text):
         for pattern, fmt in self.rules:
@@ -47,5 +55,19 @@ class SQLHighlighter(QSyntaxHighlighter):
                     re.IGNORECASE
                 ), 
                 fmt, 
+            )
+        )
+
+    def _add_comment_rule(self, pattern: str):
+        fmt = QTextCharFormat()
+        fmt.setForeground(
+            QColor(COLOR_FORESTGREEN)
+        )
+        self.rules.append(
+            (
+                re.compile(
+                    pattern
+                ), 
+                fmt
             )
         )
