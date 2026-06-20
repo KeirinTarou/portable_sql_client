@@ -1,3 +1,4 @@
+import re
 from typing import Tuple
 
 from PyQt6.QtCore import Qt
@@ -113,8 +114,22 @@ class SQLEditor(QPlainTextEdit):
         if event.key() == Qt.Key.Key_Backtab:
             self._outdent()
             return
+        
+        if event.key() in (
+            Qt.Key.Key_Return, 
+            Qt.Key.Key_Enter):
+            self._auto_indent()
+            return
 
         super().keyPressEvent(event)
+
+    def _auto_indent(self):
+        cursor = self.textCursor()
+        block = cursor.block()
+        text = block.text()
+        match = re.match(r"^[ \t]*", text)
+        indent = match.group()
+        cursor.insertText("\n" + indent)
 
     def _remove_indent(self, cursor: QTextCursor, block: QTextBlock):
         """ アウトデント用ヘルパ
