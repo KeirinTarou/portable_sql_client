@@ -73,6 +73,12 @@ class SQLHighlighter(QSyntaxHighlighter):
 
     def highlightBlock(self, text):
         # キーワード・リテラル・関数の色づけ
+        self._apply_rules(text)
+        # 複数行コメント対応
+        self._highlight_multiline_comment(text)
+
+    def _apply_rules(self, text):
+        """ ルールを適用してテキストに色づけする"""
         for pattern, fmt in self.rules:
             for match in pattern.finditer(text):
                 self.setFormat(
@@ -80,8 +86,6 @@ class SQLHighlighter(QSyntaxHighlighter):
                     match.end() - match.start(), 
                     fmt
                 )
-        # 複数行コメント対応
-        self._highlight_multiline_comment(text)
 
     def _highlight_multiline_comment(self, text):
         # 現在コメントブロック内かどうか取得
