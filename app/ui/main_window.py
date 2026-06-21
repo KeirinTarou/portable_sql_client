@@ -232,7 +232,7 @@ class MainWindow(QMainWindow):
         data = self._load_table_info(table_name)
         dialog = TableBrowserDialog(table_name, data, self)
         # ダイアログ表示
-        dialog.exec()
+        dialog.show()
 
     def _load_table_info(self, table_name: str) -> QueryResult:
         table_info_cache = get_base_dir() / "cache" / f"{table_name}.json"
