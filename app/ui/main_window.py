@@ -228,6 +228,17 @@ class MainWindow(QMainWindow):
     def _on_table_list_double_clicked(self, item):
         # テーブル名を渡してTableBrowserDialogインスタンスを作成
         table_name = item.text()
-        dialog = TableBrowserDialog(table_name, self)
+        # キャッシュ or DBからテーブル情報取得
+        data = self._load_table_info(table_name)
+        dialog = TableBrowserDialog(table_name, data, self)
         # ダイアログ表示
         dialog.exec()
+
+    def _load_table_info(self, table_name: str) -> QueryResult:
+        table_info_cache = get_base_dir() / "cache" / f"{table_name}.json"
+        if not table_info_cache.exists():
+            runner = ExcelRunner()
+            runner.get_table_info(table_name)
+        # cacheフォルダのテーブル情報読み込み
+        loader = JSONLoader()
+        return loader.load(table_info_cache)
