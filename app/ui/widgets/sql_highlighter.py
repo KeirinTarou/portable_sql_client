@@ -12,6 +12,7 @@ COLOR_CRIMSON = "#dc143c"
 COLOR_SLATEBLUE = "#6A5ACD"
 COLOR_CORAL = "#FF7F50"
 COLOR_DEEPPINK = "#FF1493"
+COLOR_DARKGRAY = "#a9a9a9"
 
 class SQLHighlighter(QSyntaxHighlighter):
     def __init__(self, document):
@@ -71,6 +72,9 @@ class SQLHighlighter(QSyntaxHighlighter):
             self._add_literal_rule(pattern, color)
 
     def highlightBlock(self, text):
+        
+        self._highlight_multiline_comment(text)
+
         for pattern, fmt in self.rules:
             for match in pattern.finditer(text):
                 self.setFormat(
@@ -78,6 +82,43 @@ class SQLHighlighter(QSyntaxHighlighter):
                     match.end() - match.start(), 
                     fmt
                 )
+
+    def _highlight_multiline_comment(self, text):
+        # 現在コメントブロック内かどうか取得
+        fmt = QTextCharFormat()
+        fmt.setForeground(QColor(COLOR_DARKGRAY))
+        state = self.previousBlockState()
+        start = 0
+        # 現在コメント中
+        if state == 1:
+            end = text.find("*/")
+            # 行内に`*/`なし -> 行全体を塗る
+            if end == -1:
+                self.setFormat(start, len(text), fmt)
+                self.setCurrentBlockState(1)
+                return
+            # 行内に`*/`あり -> 先頭から`*/`まで塗る
+            self.setFormat(start, end + len("*/"), fmt)
+            self.setCurrentBlockState(-1)
+            return
+        # 現在通常状態
+        else:
+            while True:
+                start = text.find("/*", start)
+                # 見つからない -> 塗る必要なし
+                if start == -1:
+                    self.setCurrentBlockState(-1)
+                    break
+                # ここへ来た時点で`/*`あり
+                end = text.find("*/", start)
+                # 行内に`*/`なし -> `/*`以降を塗ってフラグを立てる
+                if end == -1:
+                    self.setFormat(start, len(text) - start, fmt)
+                    self.setCurrentBlockState(1)
+                    return
+                self.setFormat(start, end - start + len("*/"), fmt)
+                start = end + len("*/")
+
 
     def _add_keyword_rule(self, keyword: str, color: str):
         fmt = QTextCharFormat()
