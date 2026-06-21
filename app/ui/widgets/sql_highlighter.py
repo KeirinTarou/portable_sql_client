@@ -1,4 +1,5 @@
 import re
+from enum import IntEnum
 
 from PyQt6.QtGui import (
     QSyntaxHighlighter, 
@@ -13,6 +14,11 @@ COLOR_SLATEBLUE = "#6A5ACD"
 COLOR_CORAL = "#FF7F50"
 COLOR_DEEPPINK = "#FF1493"
 COLOR_DARKGRAY = "#a9a9a9"
+
+class LexerState(IntEnum):
+    NORMAL = 0
+    STRING = 1
+    BLOCK_COMMENT = 2
 
 class SQLHighlighter(QSyntaxHighlighter):
     def __init__(self, document):
@@ -93,17 +99,17 @@ class SQLHighlighter(QSyntaxHighlighter):
         fmt.setForeground(QColor(COLOR_DARKGRAY))
         state = self.previousBlockState()
         start = 0
-        # 現在コメント中
-        if state == 1:
+        # 現在ブロックコメント内
+        if state == LexerState.BLOCK_COMMENT:
             end = text.find("*/")
             # 行内に`*/`なし -> 行全体を塗る
             if end == -1:
                 self.setFormat(start, len(text), fmt)
-                self.setCurrentBlockState(1)
+                self.setCurrentBlockState(LexerState.BLOCK_COMMENT)
                 return
             # 行内に`*/`あり -> 先頭から`*/`まで塗る
             self.setFormat(start, end + len("*/"), fmt)
-            self.setCurrentBlockState(-1)
+            self.setCurrentBlockState(LexerState.NORMAL)
             return
         # 現在通常状態
         else:
@@ -111,14 +117,14 @@ class SQLHighlighter(QSyntaxHighlighter):
                 start = text.find("/*", start)
                 # 見つからない -> 塗る必要なし
                 if start == -1:
-                    self.setCurrentBlockState(-1)
+                    self.setCurrentBlockState(LexerState.NORMAL)
                     break
                 # ここへ来た時点で`/*`あり
                 end = text.find("*/", start)
                 # 行内に`*/`なし -> `/*`以降を塗ってフラグを立てる
                 if end == -1:
                     self.setFormat(start, len(text) - start, fmt)
-                    self.setCurrentBlockState(1)
+                    self.setCurrentBlockState(LexerState.BLOCK_COMMENT)
                     return
                 self.setFormat(start, end - start + len("*/"), fmt)
                 start = end + len("*/")
