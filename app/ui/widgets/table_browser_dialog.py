@@ -52,6 +52,7 @@ class TableBrowserDialog(QDialog):
             }
             """
         )
+        self.table.setSortingEnabled(True)
 
         # テーブルをウィンドウにレイアウトする
         layout = QVBoxLayout()
