@@ -1,0 +1,10 @@
+BelongTo
+Categories
+CustomerClasses
+Customers
+Departments
+Employees
+Prefecturals
+Products
+Salary
+Sales
