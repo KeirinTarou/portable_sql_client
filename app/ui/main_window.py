@@ -226,5 +226,8 @@ class MainWindow(QMainWindow):
 
     # テーブル情報表示ダイアログまわり
     def _on_table_list_double_clicked(self, item):
-        dialog = TableBrowserDialog(self)
+        # テーブル名を渡してTableBrowserDialogインスタンスを作成
+        table_name = item.text()
+        dialog = TableBrowserDialog(table_name, self)
+        # ダイアログ表示
         dialog.exec()
