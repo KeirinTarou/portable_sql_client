@@ -8,6 +8,23 @@ from app.core.paths import get_base_dir
 from config import EXCEL_FILE_PATH
 EXCEL_PATH = get_base_dir() / EXCEL_FILE_PATH
 
+# FETCH_TABLE_INFO_QUERY = """
+# SELECT
+#     column_id
+#     , column_name
+#     , data_type
+#     , data_length
+#     , nullable
+# FROM
+#     all_tab_columns
+# WHERE
+#     table_name = UPPER(?)
+# ORDER BY
+#     column_id ASC
+# ;
+# """
+
+
 class ExcelRunner:
     def execute(
         self, 
@@ -58,3 +75,31 @@ class ExcelRunner:
                 excel.Quit()
             # あとかたづけ
             pythoncom.CoUninitialize()
+
+    def get_table_info(self, table_name: str):
+        save_path = get_base_dir() / "cache" / f"{table_name}.json"
+        # MySQL用
+        query = f"""
+            DESC {table_name};
+        """
+        # # Oracle用
+        # query = f"""
+        #     SELECT
+        #         column_id
+        #         , column_name
+        #         , data_type
+        #         , data_length
+        #         , nullable
+        #     FROM
+        #         all_tab_columns
+        #     WHERE
+        #         table_name = UPPER({table_name})
+        #     ORDER BY
+        #         column_id ASC
+        #     ;
+        # """
+        self.execute(
+            output_path=save_path, 
+            query=query, 
+            params=[]
+        )
