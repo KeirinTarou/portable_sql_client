@@ -152,7 +152,7 @@ class MainWindow(QMainWindow):
             # 結果セット表示
             self._show_query_result(result)
         except Exception as e:
-            self._show_error(f"on MainWindwo._show_query_result(): {str(e)}")
+            self._show_error(f"on MainWindow._show_query_result(): {str(e)}")
             return
 
     def _show_query_result(
