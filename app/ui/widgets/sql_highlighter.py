@@ -37,7 +37,9 @@ def _analyze_line(
         """
         if prev_state == LexerState.NORMAL:
             if "/*" in text:
-                pass
+                start = text.find("/*")
+                end = len(text)
+                return (LexerState.BLOCK_COMMENT, [[start, end]])
             else:
                 return (LexerState.NORMAL, [])
         elif prev_state == LexerState.BLOCK_COMMENT:
