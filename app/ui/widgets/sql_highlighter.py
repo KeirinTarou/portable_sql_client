@@ -1,5 +1,6 @@
 import re
 from enum import IntEnum
+from typing import Tuple, List
 
 from PyQt6.QtGui import (
     QSyntaxHighlighter, 
@@ -19,6 +20,28 @@ class LexerState(IntEnum):
     NORMAL = 0
     STRING = 1
     BLOCK_COMMENT = 2
+
+def _analyze_line(
+            text: str, prev_state: LexerState) -> Tuple[LexerState, List[List[int]]]:
+        """ 行（ブロック）の状態を判定する
+        
+        :param text: ブロックの文字列
+        :type text: str
+        :param prev_state: 直近のブロックの状態
+        :type prev_state: LexerState
+        :return: 次のブロックに引き継ぐ状態と、コメント領域の
+        [start, end]リストのリストのタプル
+
+        .. note::
+        - app/ui/widgets/sql_highlighter.py
+        """
+        if prev_state == LexerState.NORMAL:
+            if "/*" in text:
+                pass
+            else:
+                return (LexerState.NORMAL, [])
+        elif prev_state == LexerState.BLOCK_COMMENT:
+            pass
 
 class SQLHighlighter(QSyntaxHighlighter):
     def __init__(self, document):
@@ -128,7 +151,6 @@ class SQLHighlighter(QSyntaxHighlighter):
                     return
                 self.setFormat(start, end - start + len("*/"), fmt)
                 start = end + len("*/")
-
 
     def _add_keyword_rule(self, keyword: str, color: str):
         fmt = QTextCharFormat()
