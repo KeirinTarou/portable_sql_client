@@ -35,20 +35,29 @@ def _analyze_line(
         .. note::
         - app/ui/widgets/sql_highlighter.py
         """
+        # 現在通常状態
         if prev_state == LexerState.NORMAL:
-            if "/*" in text:
-                state = LexerState.NORMAL
-                start = text.find("/*")
-                # `*/`の分を足す
-                end = text.find("*/")
+            start = text.find("/*")
+            regions = []
+            state = LexerState.NORMAL
+            while start > -1:
+                # `*/`を探す
+                end = text.find("*/", start)
+                # `*/`がない -> コメントが閉じられない
+                #   -> 残り全部コメント・ステータス変更 -> exit
                 if end == -1:
                     end = len(text)
                     state = LexerState.BLOCK_COMMENT
+                    regions.append([start, end])
+                    break
+                # `*/`あり -> 位置情報追加 -> start更新
                 else:
+                    # `*/`の長さ分プラス
                     end += len("*/")
-                return (state, [[start, end]])
-            else:
-                return (LexerState.NORMAL, [])
+                    regions.append([start, end])
+                    start = text.find("/*", end)
+            return (state, regions)
+        # 現在ブロックコメント内
         elif prev_state == LexerState.BLOCK_COMMENT:
             pass
 
