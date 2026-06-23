@@ -2,7 +2,7 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "RecordsetJSONConverter"
+Attribute VB_Name = "RecordsetJsonConverter"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
@@ -30,6 +30,7 @@ Private Const adOpenStatic As Long = 3
 Private Const adTypeText As Long = 2
 Private Const adSaveCreateOverWrite As Long = 2
 Private Const ERR_NUMBER_BASE As Long = vbObjectError + 5000
+
 
 Private m_Recordset As Object
 
@@ -65,7 +66,8 @@ Public Sub Init( _
 End Sub
 
 Public Sub Export( _
-            ByVal a_FilePath As String)
+            ByVal a_FilePath As String, _
+   Optional ByVal a_ErrorDesc As String = "")
     Const ERR_SOURCE As String = "Export()"
     ' m_RecordsetがNothing -> 例外スロー
     If m_Recordset Is Nothing Or TypeName(m_Recordset) <> "Recordset" Then _
@@ -75,8 +77,12 @@ Public Sub Export( _
             "Recordsetオブジェクトがセットされていない。")
     
     Dim json As String
-    json = BuildJSON()
-    
+    If a_ErrorDesc <> "" Then
+        json = "{""columns"": [""error""], ""rows"": " & _
+               "[[""" & a_ErrorDesc & """]]}"
+    Else
+        json = BuildJSON()
+    End If
     ' JSONファイルをエクスポート
     Dim strm As Object
     Set strm = CreateObject("ADODB.Stream")
@@ -177,8 +183,12 @@ Friend Function ToJSONLiteral( _
         GoTo Finally
     End If
     
+    ' Boolean型 -> true/false
+    
+    
     ' 数値として評価できる -> そのまま文字列化
-    If IsNumeric(a_Value) Then
+    '   -> `0`で始まる文字列はスキップ
+    If IsNumeric(a_Value) And Left(Trim(a_Value), 1) <> "0" Then
         ret = CStr(a_Value)
         GoTo Finally
     End If
