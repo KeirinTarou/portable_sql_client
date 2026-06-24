@@ -108,6 +108,14 @@ def test_analyze_lines_ignore_opener_before_closed():
     assert next_state == LexerState.NORMAL
     assert regions == [[0, 16]]
 
+def test_analyze_lines_ignore_closer_before_opened():
+    """ 通常時: `... */ ... ` -> NORMAL, []"""
+    text = "IROM MAIDEN */KILLERS"
+    # 通常時
+    next_state, regions = _analyze_line(text, LexerState.NORMAL)
+    assert next_state == LexerState.NORMAL
+    assert regions == []
+
 def test_analyze_lines_ignore_quoted_tokens():
     """ `'`、`"`で括られた`/*`、`*/`は無視する"""
     text = "IRON '/*'MAIDEN\"*/\" '--'THE /*X*/ FACTOR"
@@ -119,3 +127,15 @@ def test_analyze_lines_ignore_quoted_tokens():
     next_state, regions = _analyze_line(text, LexerState.BLOCK_COMMENT)
     assert next_state == LexerState.NORMAL
     assert regions == [[0, 33]]
+
+def test_analyze_lines_ignore_token_in_comment():
+    """ `--`以降にある`/*`、`*/`は無視する"""
+    text = "IRON MAIDEN -- THE /*X*/ FACTOR"
+    # 通常時
+    next_state, regions = _analyze_line(text, LexerState.NORMAL)
+    assert next_state == LexerState.NORMAL
+    assert regions == []
+    # ブロックコメント内
+    next_state, regions = _analyze_line(text, LexerState.BLOCK_COMMENT)
+    assert next_state == LexerState.BLOCK_COMMENT
+    assert regions == [[0, 31]]

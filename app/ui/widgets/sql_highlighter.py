@@ -36,7 +36,7 @@ def _analyze_line(
         - app/ui/widgets/sql_highlighter.py
         """
         # 状態にかかわらず、クオートされた文字列は`_`に置換する
-        text = _mask_quoted_parts(text)
+        text = _mask_ignore_parts(text)
         # 現在通常状態
         if prev_state == LexerState.NORMAL:
             start = text.find("/*")
@@ -87,9 +87,9 @@ def _analyze_line(
                 regions.append([start, end])
             return (state, regions)
         
-def _mask_quoted_parts(text: str) -> str:
-    """ クォートされた部分を引用ごと`_`に置き換える"""
-    # シングルクォートの置換
+def _mask_ignore_parts(text: str) -> str:
+    """ クォートされた部分、`--`以降の部分を丸ごと`_`に置き換える"""
+    # シングルクォート部の置換
     patt_single_quoted = r"'(?:''|[^'])*'"
     res = \
         re.sub(
@@ -97,10 +97,19 @@ def _mask_quoted_parts(text: str) -> str:
             lambda m: "_" * len(m.group()), 
             text
         )
+    # ダブルクォート部の置換
     patt_double_quoted = r'"(?:[^"]|"")*"'
     res = \
         re.sub(
             patt_double_quoted, 
+            lambda m: "_" * len(m.group()), 
+            res
+        )
+    # `--`以降の部分の置換
+    patt_commented = r"--.*"
+    res = \
+        re.sub(
+            patt_commented, 
             lambda m: "_" * len(m.group()), 
             res
         )
