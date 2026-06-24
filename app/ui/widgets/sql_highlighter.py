@@ -17,9 +17,8 @@ COLOR_DEEPPINK = "#FF1493"
 COLOR_DARKGRAY = "#a9a9a9"
 
 class LexerState(IntEnum):
-    NORMAL = 0
-    STRING = 1
-    BLOCK_COMMENT = 2
+    NORMAL = -1
+    BLOCK_COMMENT = 1
 
 def _analyze_line(
             text: str, prev_state: LexerState) -> Tuple[LexerState, List[List[int]]]:
@@ -192,38 +191,18 @@ class SQLHighlighter(QSyntaxHighlighter):
     def _highlight_multiline_comment(self, text):
         # 現在コメントブロック内かどうか取得
         fmt = QTextCharFormat()
+        # ブロックコメント部の書式を設定（グレー文字）
         fmt.setForeground(QColor(COLOR_DARKGRAY))
-        state = self.previousBlockState()
-        start = 0
-        # 現在ブロックコメント内
-        if state == LexerState.BLOCK_COMMENT:
-            end = text.find("*/")
-            # 行内に`*/`なし -> 行全体を塗る
-            if end == -1:
-                self.setFormat(start, len(text), fmt)
-                self.setCurrentBlockState(LexerState.BLOCK_COMMENT)
-                return
-            # 行内に`*/`あり -> 先頭から`*/`まで塗る
-            self.setFormat(start, end + len("*/"), fmt)
-            self.setCurrentBlockState(LexerState.NORMAL)
-            return
-        # 現在通常状態
-        else:
-            while True:
-                start = text.find("/*", start)
-                # 見つからない -> 塗る必要なし
-                if start == -1:
-                    self.setCurrentBlockState(LexerState.NORMAL)
-                    break
-                # ここへ来た時点で`/*`あり
-                end = text.find("*/", start)
-                # 行内に`*/`なし -> `/*`以降を塗ってフラグを立てる
-                if end == -1:
-                    self.setFormat(start, len(text) - start, fmt)
-                    self.setCurrentBlockState(LexerState.BLOCK_COMMENT)
-                    return
-                self.setFormat(start, end - start + len("*/"), fmt)
-                start = end + len("*/")
+        state = LexerState(self.previousBlockState())
+        # 次のブロックに引き継ぐ状態と書式を当てる範囲を取得
+        next_state, regions = _analyze_line(text, state)
+        self.setCurrentBlockState(next_state.value)
+        for start, end in regions:
+            self.setFormat(
+                start, 
+                end - start, 
+                fmt
+            )
 
     def _add_keyword_rule(self, keyword: str, color: str):
         fmt = QTextCharFormat()
