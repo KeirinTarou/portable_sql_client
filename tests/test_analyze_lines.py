@@ -60,3 +60,11 @@ def test_analyze_lines_closed_and_unclosed_comment():
     next_state, regions = _analyze_line(text, LexerState.NORMAL)
     assert next_state == LexerState.BLOCK_COMMENT
     assert regions == [[5, 15], [30, 41]]
+
+# ブロックコメント内
+def test_analyze_lines_no_closed():
+    """ ブロックコメント内: `*/`なし -> BLOCK_COMMENT, [行先頭, 行末尾]"""
+    text = "IRON MAIDEN POWERSLAVE"
+    next_state, regions = _analyze_line(text, LexerState.BLOCK_COMMENT)
+    assert next_state == LexerState.BLOCK_COMMENT
+    assert regions == [[0, 22]]

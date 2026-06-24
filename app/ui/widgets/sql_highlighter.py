@@ -59,7 +59,10 @@ def _analyze_line(
             return (state, regions)
         # 現在ブロックコメント内
         elif prev_state == LexerState.BLOCK_COMMENT:
-            pass
+            start = 0
+            end = len(text)
+            state = LexerState.BLOCK_COMMENT
+            return (state, [[start, end]])
 
 class SQLHighlighter(QSyntaxHighlighter):
     def __init__(self, document):
