@@ -35,6 +35,8 @@ def _analyze_line(
         .. note::
         - app/ui/widgets/sql_highlighter.py
         """
+        # 状態にかかわらず、クオートされた文字列は`_`に置換する
+        text = _mask_quoted_parts(text)
         # 現在通常状態
         if prev_state == LexerState.NORMAL:
             start = text.find("/*")
@@ -84,6 +86,26 @@ def _analyze_line(
                 end = len(text)
                 regions.append([start, end])
             return (state, regions)
+        
+def _mask_quoted_parts(text: str) -> str:
+    """ クォートされた部分を引用ごと`_`に置き換える"""
+    # シングルクォートの置換
+    patt_single_quoted = r"'(?:''|[^'])*'"
+    res = \
+        re.sub(
+            patt_single_quoted, 
+            lambda m: "_" * len(m.group()), 
+            text
+        )
+    patt_double_quoted = r'"(?:[^"]|"")*"'
+    res = \
+        re.sub(
+            patt_double_quoted, 
+            lambda m: "_" * len(m.group()), 
+            res
+        )
+    
+    return res
 
 class SQLHighlighter(QSyntaxHighlighter):
     def __init__(self, document):
