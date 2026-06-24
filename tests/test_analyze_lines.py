@@ -18,8 +18,8 @@ from app.ui.widgets.sql_highlighter import (
 #       - `'*/'`は無視
 #       - `"*/"`は無視
 #   - ブロックコメント内
-#       - `*/`がない -> BLOCK_COMMENT, [行の先頭, 行の末尾]
-#       - `*/`あり -> NORMAL, [行の先頭, `*/`の末尾]
+#       ✅- `*/`がない -> BLOCK_COMMENT, [行の先頭, 行の末尾]
+#       ✅- `*/`あり -> NORMAL, [行の先頭, `*/`の末尾]
 #       - `*/`の後に`/*`あり 
 #           -> BLOCK_COMMENT, [[行の先頭, `*/`の末尾], [`/*`の先頭, 行の末尾]] 
 #       - `*/`の後に`/* ... */`あり 
@@ -68,3 +68,10 @@ def test_analyze_lines_no_closed():
     next_state, regions = _analyze_line(text, LexerState.BLOCK_COMMENT)
     assert next_state == LexerState.BLOCK_COMMENT
     assert regions == [[0, 22]]
+
+def test_analyze_lines_closed():
+    """ ブロックコメント内: `*/`あり -> NORMAL, [行先頭, `*/`末尾]"""
+    text = "IRON MAIDEN */POWERSLAVE"
+    next_state, regions = _analyze_line(text, LexerState.BLOCK_COMMENT)
+    assert next_state == LexerState.NORMAL
+    assert regions == [[0, 14]]

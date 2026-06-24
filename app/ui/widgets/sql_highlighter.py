@@ -60,8 +60,15 @@ def _analyze_line(
         # 現在ブロックコメント内
         elif prev_state == LexerState.BLOCK_COMMENT:
             start = 0
-            end = len(text)
-            state = LexerState.BLOCK_COMMENT
+            end = text.find("*/")
+            # `*/`あり
+            if end > -1:
+                state = LexerState.NORMAL
+                end += len("*/")
+            # `*/`なし
+            else:
+                state = LexerState.BLOCK_COMMENT
+                end = len(text)
             return (state, [[start, end]])
 
 class SQLHighlighter(QSyntaxHighlighter):
