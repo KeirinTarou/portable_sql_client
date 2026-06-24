@@ -9,6 +9,7 @@ from app.ui.widgets.sql_highlighter import (
 #       ✅- `/*`あり -> BLOCK_COMMENT, コメント位置情報リスト
 #       ✅- `/*`、`*/`ともにあり -> NORMAL, コメント位置情報リスト
 #       ✅- `/* ... */`が1行に2箇所 -> NORMAL, コメント位置情報リスト
+#       ✅- `/* ... */ ... /* ...` -> BLOCK_COMMENT, コメント位置情報リスト
 
 # 通常時
 def test_analyze_lines_no_comment():
@@ -38,3 +39,10 @@ def test_analyze_lines_two_separate_comments():
     next_state, regions = _analyze_line(text, LexerState.NORMAL)
     assert next_state == LexerState.NORMAL
     assert regions == [[5, 15], [26, 32]]
+
+def test_analyze_lines_closed_and_unclosed_comment():
+    """ 通常時: `/* ... */ ... /* ...` -> BLOCK_COMMENT, コメント位置情報リスト"""
+    text = "IRON /*MAIDEN*/ NO PRAYER FOR /*THE DYING"
+    next_state, regions = _analyze_line(text, LexerState.NORMAL)
+    assert next_state == LexerState.BLOCK_COMMENT
+    assert regions == [[5, 15], [30, 41]]
