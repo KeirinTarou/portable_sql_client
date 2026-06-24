@@ -61,15 +61,29 @@ def _analyze_line(
         elif prev_state == LexerState.BLOCK_COMMENT:
             start = 0
             end = text.find("*/")
-            # `*/`あり
-            if end > -1:
-                state = LexerState.NORMAL
+            regions = []
+            state = LexerState.BLOCK_COMMENT
+            # 閉じ`*/`が見つかっていたらループ突入
+            while end != -1:
                 end += len("*/")
-            # `*/`なし
-            else:
-                state = LexerState.BLOCK_COMMENT
+                regions.append([start, end])
+                # 次の`/*`を探す
+                start = text.find("/*", end)
+                # 次の`/*`あり
+                if start != -1:
+                    state = LexerState.BLOCK_COMMENT
+                    # 閉じる`*/`を探して次へ
+                    end = text.find("*/", start + len("/*"))
+                # 次の`/*`なし -> ループを抜ける
+                else:
+                    state = LexerState.NORMAL
+                    end = len(text)
+                    break
+            # 閉じ`*/`が見つからなかった -> 行末位置に補正
+            if end == -1: 
                 end = len(text)
-            return (state, [[start, end]])
+                regions.append([start, end])
+            return (state, regions)
 
 class SQLHighlighter(QSyntaxHighlighter):
     def __init__(self, document):
