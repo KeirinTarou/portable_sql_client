@@ -10,6 +10,7 @@ from app.ui.widgets.sql_highlighter import (
 #       ✅- `/*`、`*/`ともにあり -> NORMAL, コメント位置情報リスト
 #       ✅- `/* ... */`が1行に2箇所 -> NORMAL, コメント位置情報リスト
 #       ✅- `/* ... */ ... /* ...` -> BLOCK_COMMENT, コメント位置情報リスト
+#       ✅- 通常時: `/* ... /* ...` -> BLOCK_COMMENT, [`/*`先頭, 行末]
 #       - `--`の後ろの`/*`は無視
 #       - `'/*'`は無視
 #       - `"/*"`は無視
@@ -91,3 +92,18 @@ def test_analyze_lines_closed_and_recommented():
     next_state, regions = _analyze_line(text, LexerState.BLOCK_COMMENT)
     assert next_state == LexerState.NORMAL
     assert regions == [[0, 6], [14, 25]]
+
+# 無視するトークン
+def test_analyze_lines_ignore_opener_before_closed():
+    """ 通常時: `... /* ... /* ...` -> BLOCK_COMMENT, [`/*`先頭, 行末]
+        ブロックコメント内: `... /* ... */ ...` -> NORMAL, [行先頭, `*/`末尾]"""
+    text = "IROM /*MAIDEN /*KILLERS"
+    # 通常時
+    next_state, regions = _analyze_line(text, LexerState.NORMAL)
+    assert next_state == LexerState.BLOCK_COMMENT
+    assert regions == [[5, 23]]
+    # コメントブロック内
+    text = "IROM /*MAIDEN */KILLERS"
+    next_state, regions = _analyze_line(text, LexerState.BLOCK_COMMENT)
+    assert next_state == LexerState.NORMAL
+    assert regions == [[0, 16]]
