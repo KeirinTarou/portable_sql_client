@@ -79,7 +79,7 @@ Public Sub Export( _
     Dim json As String
     If a_ErrorDesc <> "" Then
         json = "{""columns"": [""error""], ""rows"": " & _
-               "[[""" & a_ErrorDesc & """]]}"
+               "[[" & ToJSONLiteral(a_ErrorDesc) & "]]}"
     Else
         json = BuildJSON()
     End If
@@ -132,7 +132,7 @@ Friend Function BuildJSONCore( _
     Dim i As Long, ub1 As Long, tmp1 As Variant
     ub1 = UBound(a_Columns)
     For i = LBound(a_Columns) To ub1
-        tmp1 = tmp1 & sf.Quoted(a_Columns(i))
+        tmp1 = tmp1 & sf.Quoted(EscapeJSONString(a_Columns(i)))
         If i <> ub1 Then tmp1 = tmp1 & ", "
     Next
     ' 列名配列の要素をブラケットで囲んで`, `を追加
