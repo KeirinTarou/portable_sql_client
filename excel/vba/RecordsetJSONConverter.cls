@@ -83,6 +83,8 @@ Public Sub Export( _
     Else
         json = BuildJSON()
     End If
+    
+    On Error GoTo HandleError
     ' JSONファイルをエクスポート
     Dim strm As Object
     Set strm = CreateObject("ADODB.Stream")
@@ -93,8 +95,25 @@ Public Sub Export( _
     End With
     Call strm.WriteText(json)
     Call strm.SaveToFile(a_FilePath, adSaveCreateOverWrite)
-    Call strm.Close
-    Set strm = Nothing
+    GoTo Finally
+    
+    Dim errNo As Long, errSrc As String, errDesc As String
+HandleError:
+    ' 再スローのために例外情報を集めてから握りつぶす
+    errNo = 0: errSrc = "": errDesc = ""
+    errNo = Err.Number
+    errSrc = Err.Source
+    errDesc = Err.Description
+    Call Err.Clear
+Finally:
+    On Error Resume Next
+    If Not strm Is Nothing Then
+        Call strm.Close
+        Set strm = Nothing
+    End If
+    ' 例外は呼び出し元に再スローする
+    If errNo = 0 Then Exit Sub
+    Call Err.Raise(errNo, errSrc, errDesc)
 End Sub
 
 Private Sub AA_InternalMethods(): End Sub
