@@ -3,7 +3,6 @@
 ```bash
 portable_sql_client/
     ├ .venv/
-    ├ main.py
     ├ app/
     │   ├ core/
     │   |    ├ paths.py
@@ -33,6 +32,7 @@ portable_sql_client/
     ├ main.py
     ├ readme.md # this file
     ├ requirements.txt
+    ├ sql.ico
     ├ table_names.txt
     └ README.md
 
@@ -70,3 +70,19 @@ portable_sql_client/
 - `models/`（軽くでOK）
     - `QueryResult`モデル
     - 👉 ただし最初は薄くていい
+
+## 実行ファイルビルドコマンド
+```bash
+pyinstaller ^
+    --noconfirm ^
+    --clean ^
+    --onedir ^
+    --windowed ^
+    --icon=sql.ico ^
+    --name portable_sql_client ^
+    --add-data "assets;assets" ^
+    --add-data "excel;excel" ^
+    --add-data "table_names.txt;." ^
+    main.py
+```
+- `portable_sql_client.spec`ができたら`pyinstaller portable_sql_client.spec`で良い。
