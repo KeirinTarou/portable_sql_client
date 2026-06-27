@@ -13,7 +13,6 @@ from app.core.paths import get_base_dir
 from app.models.query_result import QueryResult
 from app.infrastructure.excel_runner import ExcelRunner
 from app.infrastructure.json_loader import JSONLoader
-from app.core.text_utils import truncate
 from app.ui.widgets.sql_editor import SQLEditor
 from app.ui.widgets.table_browser_dialog import TableBrowserDialog
 
