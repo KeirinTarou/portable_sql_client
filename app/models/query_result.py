@@ -24,9 +24,6 @@ class QueryResult:
 class QueryResult:
     columns: list[str]
     rows: list[list[Any]]
-    is_error: bool = False
-    error_title: str = ""
-    error_message: str = ""
 
     @property
     def row_count(self) -> int:
@@ -44,7 +41,4 @@ class QueryResult:
                 ["残念ｗ", f"{title}ｗｗｗ"], 
                 ["原因はたぶん……", f"{truncate(message)}"]
             ], 
-            is_error=True, 
-            error_title=title, 
-            error_message=message
         )
