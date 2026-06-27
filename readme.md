@@ -81,8 +81,6 @@ pyinstaller ^
     --icon=sql.ico ^
     --name portable_sql_client ^
     --add-data "assets;assets" ^
-    --add-data "excel;excel" ^
-    --add-data "table_names.txt;." ^
     main.py
 ```
 - `portable_sql_client.spec`ができたら`pyinstaller portable_sql_client.spec`で良い。
