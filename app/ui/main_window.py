@@ -132,9 +132,12 @@ class MainWindow(QMainWindow):
             )
         except Exception as e:
             result = QueryResult.error(
-                    title="クエリ実行失敗", 
-                    message=f"on ExcelRunner.execute(): {str(e)}"
-                )
+                title="クエリ実行失敗", 
+                message=f"on ExcelRunner.execute(): {str(e)}"
+            )
+            self._show_query_result(result)
+            # ここで処理を終える必要がある
+            return
 
         try:
             # JSON読み込み
@@ -147,6 +150,9 @@ class MainWindow(QMainWindow):
                 title="JSON読み込み失敗", 
                 message=f"on JSONLoader.load(): {str(e)}"
             )
+            self._show_query_result(result)
+            # ここで処理を終える必要がある
+            return
 
         try:
             # 結果セット表示
