@@ -1,5 +1,9 @@
+# 前方参照用
+from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
+
+from app.core.text_utils import truncate
 
 """
 `@dataclass`デコレータにより、下記のようなコンストラクタが
@@ -20,8 +24,6 @@ class QueryResult:
 class QueryResult:
     columns: list[str]
     rows: list[list[Any]]
-    is_error: bool = False
-    error_message: str = ""
 
     @property
     def row_count(self) -> int:
@@ -31,3 +33,12 @@ class QueryResult:
     def column_count(self) -> int:
         return len(self.columns)
     
+    @classmethod
+    def error(cls, title: str, message: str) -> QueryResult:
+        return cls(
+            columns=["( ´,_ゝ｀)", "ち～ん（笑）"], 
+            rows=[
+                ["残念ｗ", f"{title}ｗｗｗ"], 
+                ["原因はたぶん……", f"{truncate(message)}"]
+            ], 
+        )
