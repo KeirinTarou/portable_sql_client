@@ -241,14 +241,9 @@ class MainWindow(QMainWindow):
             runner.get_table_info(table_name)
             # 踏み台Excelでの処理後、JSONがない -> 通信失敗
             if not table_info_cache.exists():
-                err_msg = \
-                    "Excel側でI/Oエラーが発生した可能性があります。"
-                return QueryResult(
-                    columns=["( ´,_ゝ`)", "ち～ん（笑）"], 
-                    rows=[
-                        ["残念ｗ", "JSONが取得できなかったｗｗｗ"], 
-                        ["原因はたぶん……", truncate(err_msg)]
-                    ]
+                return QueryResult.error(
+                    title="踏み台Excelのエラー", 
+                    message="JSONエクスポート時のI/Oエラーの可能性あり。"
                 )
 
         # cacheフォルダのテーブル情報読み込み
