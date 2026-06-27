@@ -19,6 +19,8 @@ Public Sub ExecQuery( _
             a_Timeout)
     Dim rjc As New RecordsetJsonConverter
     Call rjc.Init(rs)
+    
+    On Error GoTo HandleIOError
     Call rjc.Export(a_FilePath)
     Exit Sub
 HandleError:
@@ -27,5 +29,17 @@ HandleError:
     rs.CursorType = adOpenStatic
     Call rjc.Init(rs)
     Call rjc.Export(a_FilePath, errDesc)
+    Exit Sub
+HandleIOError:
+    ' ファイルI/Oエラーは黙って握りつぶすしかない
+    ' ワンチャン、このExcelにログを残すことを試みる
+    ' この例外が出ている時点で、外部ファイルにエクスポートできる
+    ' 保証がない -> だめもとでこのExcelに保存を試みる
+    On Error Resume Next
+    If Err.Number <> 0 Then
+        Call Sh01Main.LogError(Err.Number, Err.Source, Err.Description)
+        Call Err.Clear
+    End If
+    On Error GoTo 0
 End Sub
 
