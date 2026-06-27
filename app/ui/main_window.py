@@ -131,13 +131,10 @@ class MainWindow(QMainWindow):
                 timeout=30
             )
         except Exception as e:
-            self._show_query_result(
-                QueryResult.error(
+            result = QueryResult.error(
                     title="クエリ実行失敗", 
                     message=f"on ExcelRunner.execute(): {str(e)}"
                 )
-            )
-            return
 
         try:
             # JSON読み込み
@@ -146,17 +143,10 @@ class MainWindow(QMainWindow):
                 get_base_dir() / "temp" / "result.json"
             )
         except Exception as e:
-            self._show_query_result(
-                QueryResult.error(
-                    title="JSON読み込み失敗", 
-                    message=f"on JSONLoader.load(): {str(e)}"
-                )
+            result = QueryResult.error(
+                title="JSON読み込み失敗", 
+                message=f"on JSONLoader.load(): {str(e)}"
             )
-            return
-
-        if result.is_error:
-            self._show_query_result(result)
-            return
 
         try:
             # 結果セット表示
