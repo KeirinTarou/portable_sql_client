@@ -131,7 +131,12 @@ class MainWindow(QMainWindow):
                 timeout=30
             )
         except Exception as e:
-            self._show_error(f"on ExcelRunner.execute(): {str(e)}")
+            self._show_query_result(
+                QueryResult.error(
+                    title="クエリ実行失敗", 
+                    message=f"on ExcelRunner.execute(): {str(e)}"
+                )
+            )
             return
 
         try:
@@ -141,18 +146,28 @@ class MainWindow(QMainWindow):
                 get_base_dir() / "temp" / "result.json"
             )
         except Exception as e:
-            self._show_error(f"on JSONLoader.load(): {str(e)}")
+            self._show_query_result(
+                QueryResult.error(
+                    title="JSON読み込み失敗", 
+                    message=f"on JSONLoader.load(): {str(e)}"
+                )
+            )
             return
 
         if result.is_error:
-            self._show_error(result.error_message)
+            self._show_query_result(result)
             return
 
         try:
             # 結果セット表示
             self._show_query_result(result)
         except Exception as e:
-            self._show_error(f"on MainWindow._show_query_result(): {str(e)}")
+            self._show_query_result(
+                QueryResult.error(
+                    title="結果表示失敗", 
+                    message=f"on MainWindow._show_query_result(): {str(e)}"
+                )
+            )
             return
 
     def _show_query_result(
@@ -212,17 +227,6 @@ class MainWindow(QMainWindow):
                     col, 
                     MAX_COL_WIDTH
                 )
-
-    def _show_error(self, message: str):
-        """ エラーメッセージを出力"""
-        result = QueryResult(
-            columns=["( ´,_ゝ`)", "ち～ん（笑）"], 
-            rows=[
-                ["残念ｗ", "レコードセットが返らなかったｗｗｗ"], 
-                ["原因はたぶん……", truncate(message)]
-            ]
-        )
-        self._show_query_result(result)
 
     # テーブル情報表示ダイアログまわり
     def _on_table_list_double_clicked(self, item):
