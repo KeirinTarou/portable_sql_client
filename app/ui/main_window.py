@@ -262,7 +262,8 @@ class MainWindow(QMainWindow):
         #   - シグナルの情報を使わずともローカル変数dialogで削除対象は特定できる
         #   - よって、直接dialogを渡して削除する
         dialog.destroyed.connect(
-            lambda _, d=dialog: self.dialogs.remove(d))
+            lambda _, d=dialog: self.dialogs.remove(d)
+            if d in self.dialogs else None)
 
         # 同時に開けるのは最大5つまでにする
         if len(self.dialogs) > 5:
