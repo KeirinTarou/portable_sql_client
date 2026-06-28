@@ -240,6 +240,12 @@ class MainWindow(QMainWindow):
         self.table_info_worker = TableInfoWorker(table_name)
         # result_readyに_open_table_dialog()をバインド
         self.table_info_worker.result_ready.connect(self._open_table_info_dialog)
+        # QueryWorkerの仕事が終わったことを知らせるシグナルを登録
+        self.table_info_worker.finished.connect(
+            self._on_query_finished
+        )
+        # UIを実行中状態に切り替える
+        self._set_running_state(True)
         # TableInfoWorker起動
         self.table_info_worker.start()
 
