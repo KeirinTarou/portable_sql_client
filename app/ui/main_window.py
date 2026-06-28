@@ -5,7 +5,8 @@ from PyQt6.QtWidgets import (
     QHBoxLayout, 
     QLabel, QListWidget, 
     QPushButton, 
-    QTableWidget, QTableWidgetItem)
+    QTableWidget, QTableWidgetItem, 
+    QApplication)
 from PyQt6.QtCore import Qt
 
 from config import TABLE_NAMES_FILE
@@ -15,6 +16,7 @@ from app.infrastructure.excel_runner import ExcelRunner
 from app.infrastructure.json_loader import JSONLoader
 from app.ui.widgets.sql_editor import SQLEditor
 from app.ui.widgets.table_browser_dialog import TableBrowserDialog
+from app.workers.query_worker import QueryWorker
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -31,6 +33,10 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Portable SQL Client")
         # ウィンドウサイズ（固定）
         self.resize(800, 600)
+        # 踏み台Excel別スレッド実行用ワーカー
+        self.worker: QueryWorker | None = None
+        # クエリ実行ステータス
+        self._is_running = False 
         # SQL入力用エディタ
         self.sql_editor = SQLEditor()
         # テーブル一覧表示用リスト用のラベル
@@ -103,6 +109,24 @@ class MainWindow(QMainWindow):
         )
 
     # Private method
+    def _set_running_state(self, running: bool):
+        self._is_running = running
+        # ボタンとテーブル一覧 -> 実行中無効
+        self.exec_button.setEnabled(not running)
+        self.table_list.setEnabled(not running)
+
+        # エディタは実行中もReadOnlyにしない
+        #   - 実行中ReadOnlyにしたくなったら下記コメントを解除
+        # self.sql_editor.setReadOnly(running)
+
+        # ボタンのラベルとマウスポインタの切り替え
+        if running:
+            self.exec_button.setText("実行中……")
+            QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        else:
+            self.exec_button.setText("クエリ実行！")
+            QApplication.restoreOverrideCursor()
+
     # テーブル名リストを読み込む
     def _load_table_names(self) -> List[str]:
         with open(TABLE_NAMES_FILE, encoding="utf-8") as f:
@@ -116,61 +140,41 @@ class MainWindow(QMainWindow):
     #  クリックイベントを受け取る
     def _on_exec_button_clicked(self):
         """ 「クエリ実行！」ボタンのクリックイベントの処理"""
-        # 想定外の例外をキャッチ
-        try:
-            # エディタからクエリ取り出し
-            query = self.sql_editor.toPlainText()
-            # 踏み台Excelにクエリを投げる
-            runner = ExcelRunner()
-            # クエリ実行
-            runner.execute(
-                output_path=get_base_dir() / "temp" / "result.json", 
-                query=query, 
-                params=[], 
-                timeout=30
-            )
-        except Exception as e:
-            result = QueryResult.error(
-                title="クエリ実行失敗", 
-                message=f"on ExcelRunner.execute(): {str(e)}"
-            )
-            self._show_query_result(result)
-            # ここで処理を終える必要がある
+        # エディタのクエリを取り出す
+        query = self.sql_editor.toPlainText()
+        # 踏み台Excel用ワーカーを作成
+        #   - すでに作成済みだったらreturn（何もしない）
+        if self._is_running:
             return
+        self.worker = QueryWorker(query)
+        # result_readyシグナルに_show_query_result()をバインド
+        #   - QueryWorkerでemit()を実行した時点で発火
+        self.worker.result_ready.connect(
+            self._show_query_result
+        )
+        # QueryWorkerの仕事が終わったことを知らせるシグナルを登録
+        self.worker.finished.connect(
+            self._on_query_finished
+        )
 
-        try:
-            # JSON読み込み
-            loader = JSONLoader()
-            result = loader.load(
-                get_base_dir() / "temp" / "result.json"
-            )
-        except Exception as e:
-            result = QueryResult.error(
-                title="JSON読み込み失敗", 
-                message=f"on JSONLoader.load(): {str(e)}"
-            )
-            self._show_query_result(result)
-            # ここで処理を終える必要がある
-            return
+        # UIを実行中状態に切り替える
+        self._set_running_state(True)
 
-        try:
-            # 結果セット表示
-            self._show_query_result(result)
-        except Exception as e:
-            self._show_query_result(
-                QueryResult.error(
-                    title="結果表示失敗", 
-                    message=f"on MainWindow._show_query_result(): {str(e)}"
-                )
-            )
-            return
+        # QueryWorkerの仕事を始める
+        #   - QueryResult準備作業開始
+        #   - 準備ができたらresult_readyシグナルを発信
+        self.worker.start()
+
+    def _on_query_finished(self):
+        # UIの状態を元に戻す
+        self._set_running_state(False)
 
     def _show_query_result(
             self, 
             result: QueryResult):
         """ 結果セットをテーブルに表示する"""
         MAX_COL_WIDTH = 200
-        
+
         self.result_table.setColumnCount(
             result.column_count
         )
@@ -193,7 +197,7 @@ class MainWindow(QMainWindow):
                     col_index, 
                     item    
                 )
-
+        
         # 内容に応じて列幅自動調整
         self.result_table.resizeColumnsToContents()
         # テーブルのヘッダの設定
