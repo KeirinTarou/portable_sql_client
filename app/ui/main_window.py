@@ -39,7 +39,7 @@ class MainWindow(QMainWindow):
         # テーブル情報取得用ワーカー
         self.table_info_worker: TableInfoWorker | None = None
         # テーブル情報表示用ダイアログ
-        self.dialog: TableBrowserDialog | None = None
+        self.dialogs: List[TableBrowserDialog] = []
         # クエリ実行ステータス
         self._is_running = False 
         # SQL入力用エディタ
@@ -245,5 +245,19 @@ class MainWindow(QMainWindow):
 
     def _open_table_info_dialog(self, table_name: str, result: QueryResult):
         # テーブル情報ダイアログを開く
-        self.dialog = TableBrowserDialog(table_name, result)
-        self.dialog.show()
+        dialog = TableBrowserDialog(table_name, result, self)
+        # dialogs属性に追加
+        self.dialogs.append(dialog)
+        # ダイアログを閉じたらリストから削除するよう予約
+        # destroyedシグナル: Qtオブジェクト破棄通知
+        #   - シグナルの情報を使わずともローカル変数dialogで削除対象は特定できる
+        #   - よって、直接dialogを渡して削除する
+        dialog.destroyed.connect(
+            lambda _, d=dialog: self.dialogs.remove(d))
+
+        # 同時に開けるのは最大5つまでにする
+        if len(self.dialogs) > 5:
+            d = self.dialogs.pop(0)
+            d.close()
+
+        dialog.show()
