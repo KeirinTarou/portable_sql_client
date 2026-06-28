@@ -120,6 +120,10 @@ class MainWindow(QMainWindow):
     #  クリックイベントを受け取る
     def _on_exec_button_clicked(self):
         """ 「クエリ実行！」ボタンのクリックイベントの処理"""
+        # 一旦ボタンの表示を「実行中……」に変える
+        self.exec_button.setText("実行中……")
+        self.exec_button.setEnabled(False)
+
         # エディタのクエリを取り出す
         query = self.sql_editor.toPlainText()
         # 踏み台Excel用ワーカーを作成
@@ -129,10 +133,18 @@ class MainWindow(QMainWindow):
         self.worker.result_ready.connect(
             self._show_query_result
         )
+        # QueryWorkerの仕事が終わったことを知らせるシグナルを登録
+        self.worker.finished.connect(
+            self._on_query_finished
+        )
         # QueryWorkerの仕事を始める
         #   - QueryResult準備作業開始
         #   - 準備ができたらresult_readyシグナルを発信
         self.worker.start()
+
+    def _on_query_finished(self):
+        self.exec_button.setEnabled(True)
+        self.exec_button.setText("クエリ実行！")
 
     def _show_query_result(
             self, 
