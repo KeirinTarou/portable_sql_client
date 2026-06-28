@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import (
     QLabel, QListWidget, 
     QPushButton, 
     QTableWidget, QTableWidgetItem, 
-    QMessageBox)
+    QApplication)
 from PyQt6.QtCore import Qt
 
 from config import TABLE_NAMES_FILE
@@ -123,6 +123,8 @@ class MainWindow(QMainWindow):
         # 一旦ボタンの表示を「実行中……」に変える
         self.exec_button.setText("実行中……")
         self.exec_button.setEnabled(False)
+        # マウスポインタを変更する
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
 
         # エディタのクエリを取り出す
         query = self.sql_editor.toPlainText()
@@ -143,8 +145,11 @@ class MainWindow(QMainWindow):
         self.worker.start()
 
     def _on_query_finished(self):
+        # ボタンの状態を戻す
         self.exec_button.setEnabled(True)
         self.exec_button.setText("クエリ実行！")
+        # マウスポインタの状態を戻す
+        QApplication.restoreOverrideCursor()
 
     def _show_query_result(
             self, 
