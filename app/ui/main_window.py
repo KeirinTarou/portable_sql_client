@@ -15,6 +15,7 @@ from app.infrastructure.excel_runner import ExcelRunner
 from app.infrastructure.json_loader import JSONLoader
 from app.ui.widgets.sql_editor import SQLEditor
 from app.ui.widgets.table_browser_dialog import TableBrowserDialog
+from app.workers.query_worker import QueryWorker
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -31,6 +32,8 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Portable SQL Client")
         # ウィンドウサイズ（固定）
         self.resize(800, 600)
+        # 踏み台Excel別スレッド実行用ワーカー
+        self.worker: QueryWorker | None = None
         # SQL入力用エディタ
         self.sql_editor = SQLEditor()
         # テーブル一覧表示用リスト用のラベル
@@ -116,6 +119,12 @@ class MainWindow(QMainWindow):
     #  クリックイベントを受け取る
     def _on_exec_button_clicked(self):
         """ 「クエリ実行！」ボタンのクリックイベントの処理"""
+        # QueryWorkerインスタンスを作成
+        self.worker = QueryWorker()
+        self.worker.start()
+        # 仮実装なのでここで抜ける
+        return
+
         # 想定外の例外をキャッチ
         try:
             # エディタからクエリ取り出し
