@@ -17,6 +17,7 @@ from app.infrastructure.json_loader import JSONLoader
 from app.ui.widgets.sql_editor import SQLEditor
 from app.ui.widgets.table_browser_dialog import TableBrowserDialog
 from app.workers.query_worker import QueryWorker
+from app.workers.table_info_worker import TableInfoWorker
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -35,6 +36,10 @@ class MainWindow(QMainWindow):
         self.resize(800, 600)
         # 踏み台Excel別スレッド実行用ワーカー
         self.worker: QueryWorker | None = None
+        # テーブル情報取得用ワーカー
+        self.table_info_worker: TableInfoWorker | None = None
+        # テーブル情報表示用ダイアログ
+        self.dialog: TableBrowserDialog | None = None
         # クエリ実行ステータス
         self._is_running = False 
         # SQL入力用エディタ
@@ -231,24 +236,14 @@ class MainWindow(QMainWindow):
     def _on_table_list_double_clicked(self, item):
         # テーブル名を渡してTableBrowserDialogインスタンスを作成
         table_name = item.text()
-        # キャッシュ or DBからテーブル情報取得
-        data = self._load_table_info(table_name)
-        dialog = TableBrowserDialog(table_name, data, self)
-        # ダイアログ表示
-        dialog.show()
+        # テーブル情報を取得するワーカーを作成
+        self.table_info_worker = TableInfoWorker(table_name)
+        # result_readyに_open_table_dialog()をバインド
+        self.table_info_worker.result_ready.connect(self._open_table_info_dialog)
+        # TableInfoWorker起動
+        self.table_info_worker.start()
 
-    def _load_table_info(self, table_name: str) -> QueryResult:
-        table_info_cache = get_base_dir() / "cache" / f"{table_name}.json"
-        if not table_info_cache.exists():
-            runner = ExcelRunner()
-            runner.get_table_info(table_name)
-            # 踏み台Excelでの処理後、JSONがない -> 通信失敗
-            if not table_info_cache.exists():
-                return QueryResult.error(
-                    title="踏み台Excelのエラー", 
-                    message="JSONエクスポート時のI/Oエラーの可能性あり。"
-                )
-
-        # cacheフォルダのテーブル情報読み込み
-        loader = JSONLoader()
-        return loader.load(table_info_cache)
+    def _open_table_info_dialog(self, table_name: str, result: QueryResult):
+        # テーブル情報ダイアログを開く
+        self.dialog = TableBrowserDialog(table_name, result)
+        self.dialog.show()
