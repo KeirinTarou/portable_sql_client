@@ -237,9 +237,18 @@ class MainWindow(QMainWindow):
         # テーブル名を渡してTableBrowserDialogインスタンスを作成
         table_name = item.text()
         # テーブル情報を取得するワーカーを作成
-        self.table_info_worker = TableInfoWorker(table_name)
+        worker = TableInfoWorker(table_name)
         # result_readyに_open_table_dialog()をバインド
-        self.table_info_worker.result_ready.connect(self._open_table_info_dialog)
+        worker.result_ready.connect(self._open_table_info_dialog)
+        # QueryWorkerの仕事が終わったことを知らせるシグナルを登録
+        worker.finished.connect(
+            self._on_query_finished
+        )
+        # UIを実行中状態に切り替える
+        self._set_running_state(True)
+
+        # ここでtable_info_worker属性にセット
+        self.table_info_worker = worker
         # TableInfoWorker起動
         self.table_info_worker.start()
 
@@ -252,8 +261,10 @@ class MainWindow(QMainWindow):
         # destroyedシグナル: Qtオブジェクト破棄通知
         #   - シグナルの情報を使わずともローカル変数dialogで削除対象は特定できる
         #   - よって、直接dialogを渡して削除する
+        #   - 二重削除を防ぐためifでチェック
         dialog.destroyed.connect(
-            lambda _, d=dialog: self.dialogs.remove(d))
+            lambda _, d=dialog: self.dialogs.remove(d)
+            if d in self.dialogs else None)
 
         # 同時に開けるのは最大5つまでにする
         if len(self.dialogs) > 5:
