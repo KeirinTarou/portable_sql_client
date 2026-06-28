@@ -261,6 +261,7 @@ class MainWindow(QMainWindow):
         # destroyedシグナル: Qtオブジェクト破棄通知
         #   - シグナルの情報を使わずともローカル変数dialogで削除対象は特定できる
         #   - よって、直接dialogを渡して削除する
+        #   - 二重削除を防ぐためifでチェック
         dialog.destroyed.connect(
             lambda _, d=dialog: self.dialogs.remove(d)
             if d in self.dialogs else None)
