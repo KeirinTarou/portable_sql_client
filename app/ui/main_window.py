@@ -250,7 +250,7 @@ class MainWindow(QMainWindow):
         # ここでtable_info_worker属性にセット
         self.table_info_worker = worker
         # TableInfoWorker起動
-        worker.start()
+        self.table_info_worker.start()
 
     def _open_table_info_dialog(self, table_name: str, result: QueryResult):
         # テーブル情報ダイアログを開く
