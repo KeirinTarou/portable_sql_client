@@ -107,6 +107,23 @@ class MainWindow(QMainWindow):
         )
 
     # Private method
+    def _set_running_state(self, running: bool):
+        # ボタンとテーブル一覧 -> 実行中無効
+        self.exec_button.setEnabled(not running)
+        self.table_list.setEnabled(not running)
+
+        # エディタは実行中もReadOnlyにしない
+        #   - 実行中ReadOnlyにしたくなったら下記コメントを解除
+        # self.sql_editor.setReadOnly(running)
+
+        # ボタンのラベルとマウスポインタの切り替え
+        if running:
+            self.exec_button.setText("実行中……")
+            QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        else:
+            self.exec_button.setText("クエリ実行！")
+            QApplication.restoreOverrideCursor()
+
     # テーブル名リストを読み込む
     def _load_table_names(self) -> List[str]:
         with open(TABLE_NAMES_FILE, encoding="utf-8") as f:
@@ -120,11 +137,8 @@ class MainWindow(QMainWindow):
     #  クリックイベントを受け取る
     def _on_exec_button_clicked(self):
         """ 「クエリ実行！」ボタンのクリックイベントの処理"""
-        # 一旦ボタンの表示を「実行中……」に変える
-        self.exec_button.setText("実行中……")
-        self.exec_button.setEnabled(False)
-        # マウスポインタを変更する
-        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        # UIを実行中状態に切り替える
+        self._set_running_state(True)
 
         # エディタのクエリを取り出す
         query = self.sql_editor.toPlainText()
@@ -145,11 +159,8 @@ class MainWindow(QMainWindow):
         self.worker.start()
 
     def _on_query_finished(self):
-        # ボタンの状態を戻す
-        self.exec_button.setEnabled(True)
-        self.exec_button.setText("クエリ実行！")
-        # マウスポインタの状態を戻す
-        QApplication.restoreOverrideCursor()
+        # UIの状態を元に戻す
+        self._set_running_state(False)
 
     def _show_query_result(
             self, 
