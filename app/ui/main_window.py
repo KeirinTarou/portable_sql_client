@@ -5,7 +5,8 @@ from PyQt6.QtWidgets import (
     QHBoxLayout, 
     QLabel, QListWidget, 
     QPushButton, 
-    QTableWidget, QTableWidgetItem)
+    QTableWidget, QTableWidgetItem, 
+    QMessageBox)
 from PyQt6.QtCore import Qt
 
 from config import TABLE_NAMES_FILE
@@ -119,69 +120,26 @@ class MainWindow(QMainWindow):
     #  クリックイベントを受け取る
     def _on_exec_button_clicked(self):
         """ 「クエリ実行！」ボタンのクリックイベントの処理"""
-        # QueryWorkerインスタンスを作成
         # エディタのクエリを取り出す
         query = self.sql_editor.toPlainText()
+        # 踏み台Excel用ワーカーを作成
         self.worker = QueryWorker(query)
+        # result_readyシグナルに_show_query_result()をバインド
+        #   - QueryWorkerでemit()を実行した時点で発火
+        self.worker.result_ready.connect(
+            self._show_query_result
+        )
+        # QueryWorkerの仕事を始める
+        #   - QueryResult準備作業開始
+        #   - 準備ができたらresult_readyシグナルを発信
         self.worker.start()
-        # 仮実装なのでここで抜ける
-        return
-
-        # 想定外の例外をキャッチ
-        try:
-            # エディタからクエリ取り出し
-            query = self.sql_editor.toPlainText()
-            # 踏み台Excelにクエリを投げる
-            runner = ExcelRunner()
-            # クエリ実行
-            runner.execute(
-                output_path=get_base_dir() / "temp" / "result.json", 
-                query=query, 
-                params=[], 
-                timeout=30
-            )
-        except Exception as e:
-            result = QueryResult.error(
-                title="クエリ実行失敗", 
-                message=f"on ExcelRunner.execute(): {str(e)}"
-            )
-            self._show_query_result(result)
-            # ここで処理を終える必要がある
-            return
-
-        try:
-            # JSON読み込み
-            loader = JSONLoader()
-            result = loader.load(
-                get_base_dir() / "temp" / "result.json"
-            )
-        except Exception as e:
-            result = QueryResult.error(
-                title="JSON読み込み失敗", 
-                message=f"on JSONLoader.load(): {str(e)}"
-            )
-            self._show_query_result(result)
-            # ここで処理を終える必要がある
-            return
-
-        try:
-            # 結果セット表示
-            self._show_query_result(result)
-        except Exception as e:
-            self._show_query_result(
-                QueryResult.error(
-                    title="結果表示失敗", 
-                    message=f"on MainWindow._show_query_result(): {str(e)}"
-                )
-            )
-            return
 
     def _show_query_result(
             self, 
             result: QueryResult):
         """ 結果セットをテーブルに表示する"""
         MAX_COL_WIDTH = 200
-        
+
         self.result_table.setColumnCount(
             result.column_count
         )
@@ -204,7 +162,7 @@ class MainWindow(QMainWindow):
                     col_index, 
                     item    
                 )
-
+        
         # 内容に応じて列幅自動調整
         self.result_table.resizeColumnsToContents()
         # テーブルのヘッダの設定

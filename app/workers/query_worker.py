@@ -6,6 +6,13 @@ from app.infrastructure.json_loader import JSONLoader
 from app.models.query_result import QueryResult
 
 class QueryWorker(QThread):
+    # QueryResult型のデータを運ぶシグナル
+    #   - QueryResultインスタンスが準備できたことを発信するのに使う
+    #   - self.result_ready.emit(result)でQueryWorkerインスタンスから発信
+    #   - 受け取る側は`worker.result_ready.connect(<func>)`で登録
+    #   - 発信側でemit(<func>)が呼ばれたら、connect()した関数がresultを受け取ってFire
+    result_ready = pyqtSignal(QueryResult)
+
     def __init__(
             self, query: str, parent=None):
         """ 第1引数で実行するクエリを渡す"""
@@ -29,7 +36,7 @@ class QueryWorker(QThread):
                 title="クエリ実行失敗", 
                 message=f"on ExcelRunner.execute(): {str(e)}"
             )
-            print(result)
+            self.result_ready.emit(result)
             # ここで処理を終える必要がある
             return
 
@@ -44,8 +51,8 @@ class QueryWorker(QThread):
                 title="JSON読み込み失敗", 
                 message=f"on JSONLoader.load(): {str(e)}"
             )
-            print(result)
+            self.result_ready.emit(result)
             # ここで処理を終える必要がある
             return
         
-        print(result)
+        self.result_ready.emit(result)
