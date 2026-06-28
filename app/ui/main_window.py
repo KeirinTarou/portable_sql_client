@@ -35,6 +35,8 @@ class MainWindow(QMainWindow):
         self.resize(800, 600)
         # 踏み台Excel別スレッド実行用ワーカー
         self.worker: QueryWorker | None = None
+        # クエリ実行ステータス
+        self._is_running = False 
         # SQL入力用エディタ
         self.sql_editor = SQLEditor()
         # テーブル一覧表示用リスト用のラベル
@@ -108,6 +110,7 @@ class MainWindow(QMainWindow):
 
     # Private method
     def _set_running_state(self, running: bool):
+        self._is_running = running
         # ボタンとテーブル一覧 -> 実行中無効
         self.exec_button.setEnabled(not running)
         self.table_list.setEnabled(not running)
@@ -137,12 +140,12 @@ class MainWindow(QMainWindow):
     #  クリックイベントを受け取る
     def _on_exec_button_clicked(self):
         """ 「クエリ実行！」ボタンのクリックイベントの処理"""
-        # UIを実行中状態に切り替える
-        self._set_running_state(True)
-
         # エディタのクエリを取り出す
         query = self.sql_editor.toPlainText()
         # 踏み台Excel用ワーカーを作成
+        #   - すでに作成済みだったらreturn（何もしない）
+        if self._is_running:
+            return
         self.worker = QueryWorker(query)
         # result_readyシグナルに_show_query_result()をバインド
         #   - QueryWorkerでemit()を実行した時点で発火
@@ -153,6 +156,10 @@ class MainWindow(QMainWindow):
         self.worker.finished.connect(
             self._on_query_finished
         )
+
+        # UIを実行中状態に切り替える
+        self._set_running_state(True)
+
         # QueryWorkerの仕事を始める
         #   - QueryResult準備作業開始
         #   - 準備ができたらresult_readyシグナルを発信
