@@ -120,7 +120,9 @@ class MainWindow(QMainWindow):
     def _on_exec_button_clicked(self):
         """ 「クエリ実行！」ボタンのクリックイベントの処理"""
         # QueryWorkerインスタンスを作成
-        self.worker = QueryWorker()
+        # エディタのクエリを取り出す
+        query = self.sql_editor.toPlainText()
+        self.worker = QueryWorker(query)
         self.worker.start()
         # 仮実装なのでここで抜ける
         return
